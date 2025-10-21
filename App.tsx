@@ -141,6 +141,7 @@ const App: React.FC = () => {
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
   const [selectedFreelancerId, setSelectedFreelancerId] = useState<string | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   
   const freelancersMap = useMemo(() => {
     return FREELANCERS.reduce((acc, freelancer) => {
@@ -167,6 +168,15 @@ const App: React.FC = () => {
     setIsAuthModalOpen(true);
   }, []);
   
+  const handleLoginSuccess = useCallback(() => {
+    setIsAuthenticated(true);
+    setIsAuthModalOpen(false);
+  }, []);
+
+  const handleLogout = useCallback(() => {
+    setIsAuthenticated(false);
+  }, []);
+
   const handleGoHome = useCallback(() => {
       setActiveInfoPage(null);
       setSelectedServiceId(null);
@@ -225,10 +235,15 @@ const App: React.FC = () => {
 
   return (
     <div className="bg-gray-900 text-gray-200">
-      <Header onNavigate={handleNavigate} onAuthClick={handleAuthClick} />
+      <Header 
+        onNavigate={handleNavigate} 
+        onAuthClick={handleAuthClick} 
+        isAuthenticated={isAuthenticated}
+        onLogout={handleLogout}
+      />
       {renderPage()}
       <Footer onCategoryClick={() => {}} onNavigate={handleNavigate} />
-      {isAuthModalOpen && <AuthModal onClose={() => setIsAuthModalOpen(false)} />}
+      {isAuthModalOpen && <AuthModal onClose={() => setIsAuthModalOpen(false)} onLoginSuccess={handleLoginSuccess} />}
     </div>
   );
 };

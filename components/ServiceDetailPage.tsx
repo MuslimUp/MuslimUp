@@ -44,7 +44,7 @@ const ServiceDetailPage: React.FC<ServiceDetailPageProps> = ({ service, freelanc
                 </button>
               </div>
 
-              <div className="aspect-w-16 aspect-h-9 overflow-hidden rounded-xl border border-white/10">
+              <div className="h-96 overflow-hidden rounded-xl border border-white/10">
                 <img
                   src={service.imageUrl}
                   alt={service.title}

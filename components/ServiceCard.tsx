@@ -14,7 +14,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, freelancer, onClick 
       onClick={onClick}
       className="group relative flex cursor-pointer flex-col overflow-hidden rounded-xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-lg transition-all duration-300 hover:shadow-teal-400/20 hover:-translate-y-1.5 hover:border-white/20"
     >
-      <div className="aspect-w-16 aspect-h-9">
+      <div className="h-48">
         <img
           src={service.imageUrl}
           alt={service.title}

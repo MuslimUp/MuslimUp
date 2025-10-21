@@ -228,9 +228,10 @@ const App: React.FC = () => {
       <Header onNavigate={handleNavigate} onAuthClick={handleAuthClick} />
       {renderPage()}
       <Footer onCategoryClick={() => {}} onNavigate={handleNavigate} />
-      {isAuthModalOpen && <AuthModal onClose={() => setIsAuthModalOpen(false)} />}
+     {isAuthModalOpen && <AuthForm />}
+      
     </div>
   );
 };
 
-export default App;
+export default App; import AuthForm from "./AuthForm";

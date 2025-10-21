@@ -16,8 +16,10 @@ const Spinner: React.FC = () => (
 
 const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLoginSuccess }) => {
   const [authState, setAuthState] = useState<'initial' | 'loading' | 'success'>('initial');
+  const [authProvider, setAuthProvider] = useState<string | null>(null);
 
-  const handleLoginAttempt = () => {
+  const handleLoginAttempt = (provider: string) => {
+    setAuthProvider(provider);
     setAuthState('loading');
     setTimeout(() => {
       setAuthState('success');
@@ -33,7 +35,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLoginSuccess }) => {
             return (
                 <div className="text-center py-16 transition-opacity duration-300">
                     <Spinner />
-                    <h3 className="mt-4 text-xl font-semibold text-gray-800">Connexion en cours...</h3>
+                    <h3 className="mt-4 text-xl font-semibold text-gray-800">Connexion avec {authProvider}...</h3>
                     <p className="text-gray-500">Veuillez patienter.</p>
                 </div>
             );
@@ -55,9 +57,9 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLoginSuccess }) => {
                     </div>
 
                     <div className="mt-8 space-y-4">
-                        <SocialButton provider="Google" icon={GoogleIcon} onClick={handleLoginAttempt} />
-                        <SocialButton provider="Facebook" icon={FacebookIcon} onClick={handleLoginAttempt} />
-                        <SocialButton provider="Apple" icon={AppleIcon} onClick={handleLoginAttempt} />
+                        <SocialButton provider="Google" icon={GoogleIcon} onClick={() => handleLoginAttempt('Google')} />
+                        <SocialButton provider="Facebook" icon={FacebookIcon} onClick={() => handleLoginAttempt('Facebook')} />
+                        <SocialButton provider="Apple" icon={AppleIcon} onClick={() => handleLoginAttempt('Apple')} />
                     </div>
 
                     <div className="my-6 flex items-center">
@@ -66,7 +68,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLoginSuccess }) => {
                         <div className="flex-grow border-t border-gray-300"></div>
                     </div>
 
-                    <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); handleLoginAttempt(); }}>
+                    <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); handleLoginAttempt('votre e-mail'); }}>
                         <div>
                             <label htmlFor="email" className="block text-sm font-medium text-gray-700">Adresse email</label>
                             <input 

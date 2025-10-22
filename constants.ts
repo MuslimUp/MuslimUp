@@ -25,6 +25,7 @@ export const FREELANCERS: Freelancer[] = [
     avatarUrl: 'https://picsum.photos/seed/f1/128/128',
     level: 'Top Vendeur',
     description: "Passionné par le code et l'innovation, je transforme vos idées en applications web performantes et élégantes.",
+    sellerTestimonial: "MuslimUp m'a permis de me connecter avec des clients qui comprennent vraiment ma vision. C'est plus qu'une plateforme, c'est une communauté qui soutient mon développement.",
     rating: 4.9,
     reviewCount: 124,
     stats: {
@@ -41,6 +42,7 @@ export const FREELANCERS: Freelancer[] = [
     avatarUrl: 'https://picsum.photos/seed/f2/128/128',
     level: 'Vendeur de Niveau 2',
     description: "Créative et à l'écoute, je conçois des identités visuelles uniques et des interfaces utilisateur intuitives qui marquent les esprits.",
+    sellerTestimonial: "Lancer mon activité de designer freelance ici a été la meilleure décision. La facilité d'utilisation et la qualité des projets sont incomparables. Je me sens valorisée et en sécurité.",
     rating: 5.0,
     reviewCount: 88,
     stats: {
@@ -73,6 +75,7 @@ export const FREELANCERS: Freelancer[] = [
     avatarUrl: 'https://picsum.photos/seed/f4/128/128',
     level: 'Nouveau vendeur',
     description: 'Des mots qui ont de l\'impact. Je rédige des contenus optimisés pour les moteurs de recherche qui engagent votre audience.',
+    sellerTestimonial: "J'étais hésitante à me lancer, mais la communauté bienveillante de MuslimUp et les outils simples m'ont tout de suite mise en confiance. J'ai décroché ma première commande en une semaine !",
     rating: 4.9,
     reviewCount: 32,
     stats: {
@@ -88,6 +91,7 @@ export const SERVICES: Service[] = [
   {
     id: 's1',
     freelancerId: 'f1',
+    categoryId: 'dev',
     title: 'Je vais créer votre site web moderne avec React et Node.js',
     imageUrl: 'https://picsum.photos/seed/s1-website/600/400',
     rating: 4.9,
@@ -100,6 +104,7 @@ export const SERVICES: Service[] = [
   {
     id: 's2',
     freelancerId: 'f2',
+    categoryId: 'design',
     title: 'Je vais concevoir un logo professionnel et une identité de marque',
     imageUrl: 'https://picsum.photos/seed/s2-logo/600/400',
     rating: 5.0,
@@ -112,6 +117,7 @@ export const SERVICES: Service[] = [
   {
     id: 's3',
     freelancerId: 'f3',
+    categoryId: 'video',
     title: 'Je vais réaliser un montage vidéo professionnel pour vos réseaux sociaux',
     imageUrl: 'https://picsum.photos/seed/s3-video/600/400',
     rating: 4.8,
@@ -124,6 +130,7 @@ export const SERVICES: Service[] = [
   {
     id: 's4',
     freelancerId: 'f4',
+    categoryId: 'writing',
     title: 'Je vais écrire 5 articles de blog optimisés SEO (500 mots)',
     imageUrl: 'https://picsum.photos/seed/s4-writing/600/400',
     rating: 4.9,
@@ -133,13 +140,14 @@ export const SERVICES: Service[] = [
     description: 'Améliorez votre référencement naturel avec du contenu de qualité. Je rédige des articles de blog informatifs, engageants et optimisés pour les mots-clés de votre secteur.',
     features: ['Recherche de mots-clés', '5 articles de 500 mots', 'Optimisation SEO (balises, méta)', 'Contenu 100% unique', '1 révision par article'],
   },
-  { id: 's5', freelancerId: 'f1', title: 'Développement d\'une API RESTful sécurisée', imageUrl: 'https://picsum.photos/seed/s5-api/600/400', rating: 4.9, reviewCount: 22, price: 300, ordersInQueue: 1, description: 'API robuste et documentée pour votre application.', features: ['Node.js/Express', 'Authentification JWT', 'Documentation Swagger'] },
-  { id: 's6', freelancerId: 'f2', title: 'Design d\'interface pour application mobile (UI/UX)', imageUrl: 'https://picsum.photos/seed/s6-mobile-ui/600/400', rating: 5.0, reviewCount: 31, price: 600, ordersInQueue: 2, description: 'Une expérience utilisateur fluide et un design attractif.', features: ['Fichiers Figma', 'Prototype cliquable', 'Jusqu\'à 10 écrans'] },
-  { id: 's7', freelancerId: 'f3', title: 'Animation de logo (intro/outro)', imageUrl: 'https://picsum.photos/seed/s7-logo-anim/600/400', rating: 4.9, reviewCount: 19, price: 100, ordersInQueue: 4, description: 'Donnez vie à votre logo avec une animation professionnelle.', features: ['Animation 5-10s', 'Musique & effets sonores', 'Format 4K'] },
-  { id: 's8', freelancerId: 'f2', title: 'Création de bannières publicitaires pour le web', imageUrl: 'https://picsum.photos/seed/s8-banners/600/400', rating: 4.9, reviewCount: 15, price: 80, ordersInQueue: 3, description: 'Visuels percutants pour vos campagnes publicitaires.', features: ['3 tailles de bannières', 'Formats JPG/PNG/GIF', '2 révisions'] },
+  { id: 's5', freelancerId: 'f1', categoryId: 'dev', title: 'Développement d\'une API RESTful sécurisée', imageUrl: 'https://picsum.photos/seed/s5-api/600/400', rating: 4.9, reviewCount: 22, price: 300, ordersInQueue: 1, description: 'API robuste et documentée pour votre application.', features: ['Node.js/Express', 'Authentification JWT', 'Documentation Swagger'] },
+  { id: 's6', freelancerId: 'f2', categoryId: 'design', title: 'Design d\'interface pour application mobile (UI/UX)', imageUrl: 'https://picsum.photos/seed/s6-mobile-ui/600/400', rating: 5.0, reviewCount: 31, price: 600, ordersInQueue: 2, description: 'Une expérience utilisateur fluide et un design attractif.', features: ['Fichiers Figma', 'Prototype cliquable', 'Jusqu\'à 10 écrans'] },
+  { id: 's7', freelancerId: 'f3', categoryId: 'video', title: 'Animation de logo (intro/outro)', imageUrl: 'https://picsum.photos/seed/s7-logo-anim/600/400', rating: 4.9, reviewCount: 19, price: 100, ordersInQueue: 4, description: 'Donnez vie à votre logo avec une animation professionnelle.', features: ['Animation 5-10s', 'Musique & effets sonores', 'Format 4K'] },
+  { id: 's8', freelancerId: 'f2', categoryId: 'design', title: 'Création de bannières publicitaires pour le web', imageUrl: 'https://picsum.photos/seed/s8-banners/600/400', rating: 4.9, reviewCount: 15, price: 80, ordersInQueue: 3, description: 'Visuels percutants pour vos campagnes publicitaires.', features: ['3 tailles de bannières', 'Formats JPG/PNG/GIF', '2 révisions'] },
   { 
     id: 's9', 
-    freelancerId: 'f4', 
+    freelancerId: 'f4',
+    categoryId: 'seo', 
     title: 'Je vais réaliser un audit SEO complet de votre site web', 
     imageUrl: 'https://picsum.photos/seed/s9-seo-audit/600/400', 
     rating: 4.9, 
@@ -152,6 +160,7 @@ export const SERVICES: Service[] = [
   { 
     id: 's10', 
     freelancerId: 'f2', 
+    categoryId: 'social',
     title: 'Je vais créer 10 templates de posts Instagram pour votre marque', 
     imageUrl: 'https://picsum.photos/seed/s10-instagram/600/400', 
     rating: 5.0, 
@@ -212,7 +221,26 @@ export const FAQ_ITEMS = [
     },
     {
       q: "Quels types de services puis-je trouver sur la plateforme ?",
-      a: "Vous pouvez trouver une large gamme de services numériques, tels que le développement web et mobile, le design graphique, la rédaction, la traduction, le montage vidéo, le marketing digital, et bien plus encore. Explorez nos catégories pour découvrir tous les talents disponibles.",
+      a: "Vous can trouver une large gamme de services numériques, tels que le développement web et mobile, le design graphique, la rédaction, la traduction, le montage vidéo, le marketing digital, et bien plus encore. Explorez nos catégories pour découvrir tous les talents disponibles.",
+    },
+];
+
+export const SELLER_FAQ_ITEMS = [
+    {
+      q: "Combien ça coûte de vendre sur MuslimUp ?",
+      a: "L'inscription et la publication de vos services sont gratuites. Pour assurer le bon fonctionnement et la sécurité de la plateforme, nous prélevons une commission de 20% sur chaque vente. C'est un modèle simple qui nous permet de vous accompagner dans votre succès.",
+    },
+    {
+      q: "Comment suis-je payé ?",
+      a: "Une fois qu'une commande est validée par le client, vos revenus sont disponibles sur votre solde MuslimUp. Vous êtes libre de retirer vos fonds quand vous le souhaitez, via nos options de paiement sécurisées.",
+    },
+    {
+      q: "Puis-je fixer mes propres prix ?",
+      a: "Absolument. Vous avez un contrôle total sur vos tarifs. Vous pouvez proposer des forfaits de base et ajouter des options supplémentaires pour permettre aux clients de personnaliser leur commande.",
+    },
+    {
+      q: "De quel type de support puis-je bénéficier ?",
+      a: "Notre équipe de support est là pour vous aider à chaque étape. Que vous ayez une question sur une commande ou besoin d'aide pour optimiser votre profil, nous sommes à votre disposition pour assurer votre succès sur la plateforme.",
     },
 ];
 

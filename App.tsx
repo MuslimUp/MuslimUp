@@ -12,6 +12,8 @@ import BecomeSellerPage from './components/BecomeSellerPage';
 import FaqPage from './components/FaqPage';
 import TrustAndSafetyPage from './components/TrustAndSafetyPage';
 import AuthModal from './components/AuthModal';
+import CreateServicePage from './components/CreateServicePage';
+import FloatingChatButton from './components/FloatingChatButton';
 
 import { CATEGORIES, FREELANCERS, SERVICES, TESTIMONIALS } from './constants';
 import { Freelancer, Service } from './types';
@@ -21,7 +23,8 @@ const HomePage: React.FC<{
   onServiceClick: (id: string) => void;
   freelancersMap: Record<string, Freelancer>;
   onNavigate: (page: string) => void;
-}> = ({ onServiceClick, freelancersMap, onNavigate }) => {
+  services: Service[];
+}> = ({ onServiceClick, freelancersMap, onNavigate, services }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleSearch = () => {
@@ -72,7 +75,7 @@ const HomePage: React.FC<{
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl font-bold text-center text-white mb-12">Services populaires</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {SERVICES.slice(0, 10).map(service => (
+            {services.slice(0, 10).map(service => (
               <ServiceCard
                 key={service.id}
                 service={service}
@@ -142,11 +145,17 @@ const App: React.FC = () => {
   const [selectedFreelancerId, setSelectedFreelancerId] = useState<string | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isSeller, setIsSeller] = useState(false);
+  const [loginSuccessAction, setLoginSuccessAction] = useState<'default' | 'becomeSeller'>('default');
+  const [isCreatingService, setIsCreatingService] = useState(false);
+  const [services, setServices] = useState<Service[]>(SERVICES);
 
   useEffect(() => {
-    // Check local storage on initial load
     if (localStorage.getItem('isAuthenticated') === 'true') {
       setIsAuthenticated(true);
+    }
+    if (localStorage.getItem('isSeller') === 'true') {
+        setIsSeller(true);
     }
   }, []);
   
@@ -158,51 +167,98 @@ const App: React.FC = () => {
   }, []);
 
   const servicesMap = useMemo(() => {
-    return SERVICES.reduce((acc, service) => {
+    return services.reduce((acc, service) => {
       acc[service.id] = service;
       return acc;
     }, {} as Record<string, Service>);
-  }, []);
+  }, [services]);
 
-  const handleNavigate = useCallback((page: string) => {
-    setActiveInfoPage(page === 'home' ? null : page);
-    setSelectedServiceId(null);
-    setSelectedFreelancerId(null);
-    window.scrollTo(0, 0);
-  }, []);
-  
-  const handleAuthClick = useCallback(() => {
-    setIsAuthModalOpen(true);
+  const handleGoHome = useCallback(() => {
+      setActiveInfoPage(null);
+      setSelectedServiceId(null);
+      setSelectedFreelancerId(null);
+      setIsCreatingService(false);
+      window.scrollTo(0, 0);
   }, []);
   
   const handleLoginSuccess = useCallback(() => {
     localStorage.setItem('isAuthenticated', 'true');
     setIsAuthenticated(true);
     setIsAuthModalOpen(false);
-  }, []);
+    
+    if (loginSuccessAction === 'becomeSeller') {
+        localStorage.setItem('isSeller', 'true');
+        setIsSeller(true);
+        handleGoHome();
+    }
+    setLoginSuccessAction('default');
+  }, [loginSuccessAction, handleGoHome]);
 
   const handleLogout = useCallback(() => {
     localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('isSeller');
     setIsAuthenticated(false);
+    setIsSeller(false);
   }, []);
 
-  const handleGoHome = useCallback(() => {
-      setActiveInfoPage(null);
-      setSelectedServiceId(null);
-      setSelectedFreelancerId(null);
-      window.scrollTo(0, 0);
+  const handleNavigate = useCallback((page: string) => {
+    setActiveInfoPage(page === 'home' ? null : page);
+    setSelectedServiceId(null);
+    setSelectedFreelancerId(null);
+    setIsCreatingService(false);
+    window.scrollTo(0, 0);
   }, []);
+  
+  const handleAuthClick = useCallback(() => {
+    setLoginSuccessAction('default');
+    setIsAuthModalOpen(true);
+  }, []);
+  
+  const handleBecomeSeller = useCallback(() => {
+      localStorage.setItem('isSeller', 'true');
+      setIsSeller(true);
+      handleGoHome();
+  }, [handleGoHome]);
+
+  const handleAuthAndBecomeSeller = useCallback(() => {
+      setLoginSuccessAction('becomeSeller');
+      setIsAuthModalOpen(true);
+  }, []);
+
+  const handleCreateServiceClick = useCallback(() => {
+    setIsCreatingService(true);
+    setActiveInfoPage(null);
+    setSelectedServiceId(null);
+    setSelectedFreelancerId(null);
+    window.scrollTo(0, 0);
+  }, []);
+
+  const handleServiceCreate = useCallback((newServiceData: Omit<Service, 'id' | 'freelancerId' | 'rating' | 'reviewCount' | 'ordersInQueue'>) => {
+    const freelancerId = FREELANCERS[0].id; 
+    const newService: Service = {
+        ...newServiceData,
+        id: `s${services.length + 1 + Math.random()}`,
+        freelancerId: freelancerId,
+        rating: 0,
+        reviewCount: 0,
+        ordersInQueue: 0,
+    };
+    setServices(prevServices => [newService, ...prevServices]);
+    setIsCreatingService(false);
+    handleGoHome();
+  }, [services.length, handleGoHome]);
 
   const handleServiceClick = useCallback((serviceId: string) => {
     setSelectedServiceId(serviceId);
     setActiveInfoPage(null);
+    setIsCreatingService(false);
     window.scrollTo(0, 0);
   }, []);
 
   const handleFreelancerClick = useCallback((freelancerId: string) => {
     setSelectedFreelancerId(freelancerId);
     setSelectedServiceId(null);
-    setActiveInfoPage(null);
+    setIsCreatingService(false);
     window.scrollTo(0, 0);
   }, []);
   
@@ -219,10 +275,17 @@ const App: React.FC = () => {
   }, [selectedFreelancerId, selectedServiceId, handleGoHome]);
 
   const renderPage = () => {
+    if (isCreatingService) {
+      return <CreateServicePage categories={CATEGORIES} onServiceCreate={handleServiceCreate} onBack={handleGoHome} />;
+    }
+
     if (activeInfoPage) {
         if (activeInfoPage === 'how-it-works') return <HowItWorksPage />;
         if (activeInfoPage === 'values') return <ValuesPage />;
-        if (activeInfoPage === 'become-seller') return <BecomeSellerPage onStartSelling={handleAuthClick} />;
+        if (activeInfoPage === 'become-seller') {
+            const startSellingAction = isAuthenticated ? handleBecomeSeller : handleAuthAndBecomeSeller;
+            return <BecomeSellerPage onStartSelling={startSellingAction} />;
+        }
         if (activeInfoPage === 'faq') return <FaqPage />;
         if (activeInfoPage === 'trust-and-safety') return <TrustAndSafetyPage />;
     }
@@ -235,11 +298,11 @@ const App: React.FC = () => {
     
     if (selectedFreelancerId) {
         const freelancer = freelancersMap[selectedFreelancerId];
-        const freelancerServices = SERVICES.filter(s => s.freelancerId === selectedFreelancerId);
+        const freelancerServices = services.filter(s => s.freelancerId === selectedFreelancerId);
         return <FreelancerDetailPage freelancer={freelancer} services={freelancerServices} freelancersMap={freelancersMap} onBack={handleBack} onServiceClick={handleServiceClick} />;
     }
     
-    return <HomePage onServiceClick={handleServiceClick} freelancersMap={freelancersMap} onNavigate={handleNavigate} />;
+    return <HomePage onServiceClick={handleServiceClick} freelancersMap={freelancersMap} onNavigate={handleNavigate} services={services} />;
   };
 
   return (
@@ -248,11 +311,14 @@ const App: React.FC = () => {
         onNavigate={handleNavigate} 
         onAuthClick={handleAuthClick} 
         isAuthenticated={isAuthenticated}
+        isSeller={isSeller}
         onLogout={handleLogout}
+        onCreateServiceClick={handleCreateServiceClick}
       />
       {renderPage()}
       <Footer onCategoryClick={() => {}} onNavigate={handleNavigate} />
       {isAuthModalOpen && <AuthModal onClose={() => setIsAuthModalOpen(false)} onLoginSuccess={handleLoginSuccess} />}
+      <FloatingChatButton />
     </div>
   );
 };

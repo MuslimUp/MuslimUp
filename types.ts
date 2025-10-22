@@ -19,6 +19,7 @@ export interface Freelancer {
   avatarUrl: string;
   level: string;
   description: string;
+  sellerTestimonial?: string;
   rating: number;
   reviewCount: number;
   stats: FreelancerStats;
@@ -28,6 +29,7 @@ export interface Freelancer {
 export interface Service {
   id: string;
   freelancerId: string;
+  categoryId: string;
   title: string;
   imageUrl: string;
   rating: number;

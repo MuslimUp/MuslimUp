@@ -25,17 +25,17 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, onAuthClick, isAuthenticate
               <>
                 {isSeller ? (
                    <button
-                      onClick={onCreateServiceClick}
-                      className="hidden md:inline-block px-5 py-2.5 text-sm font-semibold text-gray-900 bg-teal-400 rounded-lg hover:bg-teal-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-teal-400 transition-colors"
-                    >
-                      Créer un service
-                    </button>
-                ) : (
-                   <button
                       onClick={() => onNavigate('become-seller')}
                       className="hidden md:inline-block px-5 py-2.5 text-sm font-semibold text-teal-400 bg-transparent rounded-lg border border-teal-400 hover:bg-teal-400 hover:text-gray-900 transition-colors"
                     >
                       Devenir vendeur
+                    </button>
+                ) : (
+                   <button
+                      onClick={onCreateServiceClick}
+                      className="hidden md:inline-block px-5 py-2.5 text-sm font-semibold text-gray-900 bg-teal-400 rounded-lg hover:bg-teal-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-teal-400 transition-colors"
+                    >
+                      Créer un service
                     </button>
                 )}
                 <button 

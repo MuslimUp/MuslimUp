@@ -1,17 +1,9 @@
+import React from "react";
+import ReactDOM from "react-dom/client";
+import AuthTest from "./AuthTest";
 
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-// Fix: Explicitly import from App.tsx to resolve module error
-import App from './App.tsx';
-
-const rootElement = document.getElementById('root');
-if (!rootElement) {
-  throw new Error("Could not find root element to mount to");
-}
-
-const root = ReactDOM.createRoot(rootElement);
-root.render(
+ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
-    <App />
+    <AuthTest />
   </React.StrictMode>
 );

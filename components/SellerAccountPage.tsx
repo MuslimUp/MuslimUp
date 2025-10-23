@@ -1,108 +1,127 @@
-import React from 'react';
-import { 
-    CheckIcon,
-    PlusIcon,
-    TableCellsIcon,
-    RectangleStackIcon,
-    RocketLaunchIcon,
-    ShoppingBagIcon,
-    WalletIcon,
-    DocumentTextIcon,
-    AcademicCapIcon,
-    ChatBubbleLeftRightIcon,
-    SparklesIcon,
-    ArrowTopRightOnSquareIcon,
-    // Fix: Add missing icon imports
-    UserIcon,
-    IdentificationIcon,
-} from './icons';
+import React, { useState } from 'react';
+import { UserIcon, IdentificationIcon, CheckBadgeIcon, PlusIcon, CheckIcon, XCircleIcon, BriefcaseIcon, RocketLaunchIcon, WalletIcon, DocumentTextIcon, AcademicCapIcon, ChatBubbleLeftRightIcon, ArrowTopRightOnSquareIcon, ShoppingCartIcon, ChartBarIcon } from './icons';
 
-const SidebarNavItem: React.FC<{
-    icon: React.FC<React.SVGProps<SVGSVGElement>>;
-    label: string;
-    isActive?: boolean;
-    isSubItem?: boolean;
-}> = ({ icon: Icon, label, isActive = false, isSubItem = false }) => (
-  <a href="#" className={`flex items-center gap-x-3 p-3 rounded-lg text-left transition-colors text-base font-normal ${
-    isSubItem ? 'pl-11' : ''
-  } ${
-    isActive
-      ? 'bg-yellow-300 text-gray-900 font-semibold'
-      : 'text-gray-300 hover:bg-gray-800/50 hover:text-white'
-  }`}>
-    <Icon className={`h-5 w-5 flex-shrink-0 ${isActive ? 'text-gray-800' : 'text-gray-500'}`} />
-    <span>{label}</span>
-  </a>
-);
+type RequirementStatus = 'complete' | 'incomplete' | 'recommended';
 
-const SidebarHeader: React.FC<{ label: string }> = ({ label }) => (
-    <h3 className="px-3 pt-6 pb-2 text-sm font-semibold text-gray-500 uppercase tracking-wider">{label}</h3>
-);
-
-const RequirementItem: React.FC<{
-    label: string;
-    status: 'complete' | 'incomplete' | 'recommended';
+interface Requirement {
+    name: string;
+    status: RequirementStatus;
+    action?: 'validate' | 'modify' | 'view';
     actionText?: string;
-    progress?: string;
-}> = ({ label, status, actionText, progress }) => {
-  const isComplete = status === 'complete' || status === 'recommended';
-  const Icon = isComplete ? CheckIcon : PlusIcon;
+    progress?: {
+        current: number;
+        total: number;
+    };
+}
 
-  return (
-    <div className={`flex items-center justify-between p-4 rounded-lg border ${
-      isComplete ? 'bg-gray-800/20 border-gray-800' : 'bg-transparent border-gray-800'
-    }`}>
-      <div className="flex items-center gap-4">
-        <div className={`flex items-center justify-center h-8 w-8 rounded-full ${
-          isComplete ? 'bg-gray-700' : 'bg-gray-700'
-        }`}>
-          <Icon className={`h-5 w-5 ${isComplete ? 'text-gray-400' : 'text-gray-400'}`} />
-        </div>
-        <p className={`font-medium ${isComplete ? 'text-gray-400' : 'text-white'}`}>
-          {status === 'recommended' && <span className="font-semibold text-gray-400">Recommandé - </span>}
-          {label}
-        </p>
-      </div>
-      <div className="flex items-center gap-4">
-        {progress && <span className="text-sm font-medium text-gray-400">{progress}</span>}
-        {actionText && (
-          <button className="text-sm font-semibold text-teal-400 hover:text-teal-300 transition-colors">
-            {actionText}
-          </button>
-        )}
-      </div>
-    </div>
-  );
-};
-
-const ProgressSection: React.FC<{
-    title: string;
-    description: React.ReactNode;
-    completed: number;
-    total: number;
-    requirements: React.ComponentProps<typeof RequirementItem>[];
-}> = ({ title, description, completed, total, requirements }) => {
-    const progressPercentage = (completed / total) * 100;
+const RequirementItem: React.FC<Requirement> = ({ name, status, action, progress, actionText }) => {
+    const isComplete = status === 'complete' || status === 'recommended';
     
     return (
-        <div className="bg-gray-900 rounded-xl border border-gray-800 p-6 sm:p-8">
-            <div className="flex items-center gap-4">
-                 <div className="flex items-center justify-center h-10 w-10 rounded-md bg-black border border-gray-700 text-white">
-                    <PlusIcon className="h-5 w-5" />
+        <div className={`flex items-center justify-between p-4 rounded-lg border ${isComplete ? 'bg-gray-800/50 border-gray-700' : 'bg-gray-800 border-gray-700'}`}>
+            <div className="flex items-center">
+                <div className={`flex-shrink-0 flex items-center justify-center h-8 w-8 rounded-full ${
+                    isComplete ? 'bg-green-500/20 text-green-400' : 'bg-gray-700 text-gray-400'
+                }`}>
+                    {isComplete ? <CheckIcon className="h-5 w-5" /> : <PlusIcon className="h-5 w-5" />}
                 </div>
-                <h3 className="text-xl font-bold text-white">{title}</h3>
-                <div className="flex-1 flex items-center gap-3 ml-auto">
-                    <span className="text-sm font-mono text-gray-400">{completed}/{total}</span>
-                    <div className="w-24 h-2 bg-gray-700 rounded-full overflow-hidden">
-                        <div className="h-full bg-gray-500" style={{ width: `${progressPercentage}%` }}></div>
-                    </div>
+                <p className={`ml-4 font-medium ${isComplete ? 'text-gray-300' : 'text-white'}`}>{name}</p>
+            </div>
+            <div className="flex items-center">
+                {progress && (
+                    <span className="text-sm text-gray-400 mr-4">{progress.current}/{progress.total}</span>
+                )}
+                {action && (
+                    <button className="text-sm font-semibold text-teal-400 hover:text-teal-300 transition-colors">
+                        {actionText || action.charAt(0).toUpperCase() + action.slice(1)}
+                    </button>
+                )}
+            </div>
+        </div>
+    );
+}
+
+
+const Sidebar: React.FC<{ activeItem: string, setActiveItem: (item: string) => void }> = ({ activeItem, setActiveItem }) => {
+    
+    const mainNavItems = [
+      { name: 'Tableau de bord', icon: ChartBarIcon, href: '#dashboard' },
+      { name: 'Services', icon: BriefcaseIcon, href: '#services' },
+      { name: 'Services sponsorisés', icon: RocketLaunchIcon, href: '#sponsored' },
+      { name: 'Commandes', icon: ShoppingCartIcon, href: '#orders' },
+      { name: 'Portefeuille', icon: WalletIcon, href: '#wallet' },
+      { name: 'Factures', icon: DocumentTextIcon, href: '#invoices' },
+      { name: 'Formations', icon: AcademicCapIcon, href: '#training' },
+      { name: 'Coaching', icon: ChatBubbleLeftRightIcon, href: '#coaching' },
+    ];
+
+    const settingsNavItems = [
+      { name: 'Mon compte vendeur', href: '#account' },
+      { name: 'Mon profil public', href: '#profile' },
+      { name: 'Mes coordonnées', href: '#contact' },
+    ];
+
+    const muslimUpPlusItems = [
+      { name: 'Gérer mon offre', href: '#offer', icon: ArrowTopRightOnSquareIcon },
+    ];
+
+    return (
+        <div className="bg-gray-900 text-gray-300 rounded-lg p-4 space-y-4">
+            {/* Main Navigation */}
+            <div className="space-y-1">
+                {mainNavItems.map((item) => (
+                    <button
+                        key={item.name}
+                        className={`w-full text-left flex items-center px-3 py-2.5 text-sm font-medium rounded-md transition-colors hover:bg-gray-800 hover:text-white`}
+                    >
+                        <item.icon className="h-5 w-5 mr-3 flex-shrink-0" />
+                        {item.name}
+                    </button>
+                ))}
+            </div>
+            
+            {/* Settings Navigation */}
+            <div className="pt-4 border-t border-gray-800">
+                <div className="bg-black rounded-md mb-2">
+                    <h3 className="w-full text-left flex items-center px-3 py-2.5 text-sm font-medium text-white">
+                        Paramètres de vente
+                    </h3>
+                </div>
+                <div className="space-y-1">
+                    {settingsNavItems.map((item) => (
+                        <button
+                            key={item.name}
+                            onClick={() => setActiveItem(item.name)}
+                            className={`w-full text-left flex items-center px-3 py-2.5 text-sm font-medium rounded-md transition-colors ${
+                                activeItem === item.name
+                                    ? 'bg-teal-500 text-white'
+                                    : 'hover:bg-gray-800 hover:text-white'
+                            }`}
+                        >
+                            {item.name}
+                        </button>
+                    ))}
                 </div>
             </div>
-            <p className="mt-4 text-gray-400 max-w-2xl">{description}</p>
-            <div className="mt-8">
-                <h4 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-4">Conditions requises</h4>
-                <div className="space-y-3">
-                    {requirements.map(req => <RequirementItem key={req.label} {...req} />)}
+
+            {/* MuslimUp Plus Navigation */}
+            <div className="pt-4">
+                 <div className="bg-black rounded-md mb-2">
+                    <h3 className="w-full text-left flex items-center px-3 py-2.5 text-sm font-medium text-white">
+                        MuslimUp Plus
+                    </h3>
+                </div>
+                <div className="mt-2 space-y-1">
+                    {muslimUpPlusItems.map((item) => (
+                        <button
+                            key={item.name}
+                            onClick={() => {}}
+                            className="w-full text-left flex items-center justify-between px-3 py-2.5 text-sm font-medium rounded-md transition-colors hover:bg-gray-800 hover:text-white"
+                        >
+                            <span>{item.name}</span>
+                            <item.icon className="h-4 w-4" />
+                        </button>
+                    ))}
                 </div>
             </div>
         </div>
@@ -111,87 +130,94 @@ const ProgressSection: React.FC<{
 
 
 const SellerAccountPage: React.FC = () => {
+    const [activeItem, setActiveItem] = useState('Mon compte vendeur');
 
-    // Fix: Explicitly type the array to match component props
-    const sellerRequirements: React.ComponentProps<typeof RequirementItem>[] = [
-        { label: "Valider mon adresse e-mail", status: "incomplete", actionText: "Demander un lien de validation" },
-        { label: "Choisir mon nom d'utilisateur", status: "complete" },
-        { label: "Remplir la photo et description sur mon profil public", status: "incomplete", actionText: "Modifier" },
-        { label: "Faire valider mes coordonnées par ComeUp", status: "incomplete", actionText: "Modifier" },
-        { label: "Avoir suivi une formation de ComeUp", status: "recommended", actionText: "Voir" },
-        { label: "Avoir lu la charte du vendeur", status: "recommended", actionText: "Voir" }
+    const sellerRequirements: Requirement[] = [
+      { name: 'Valider mon adresse e-mail', status: 'incomplete', action: 'validate', actionText: 'Demander un lien de validation' },
+      { name: 'Choisir mon nom d\'utilisateur', status: 'complete' },
+      { name: 'Remplir la photo et description sur mon profil public', status: 'incomplete', action: 'modify', actionText: 'Modifier' },
+      { name: 'Faire valider mes coordonnées par MuslimUp', status: 'incomplete', action: 'modify', actionText: 'Modifier' },
+      { name: 'Recommandé - Avoir suivi une formation de MuslimUp', status: 'recommended', action: 'view', actionText: 'Voir' },
+      { name: 'Recommandé - Avoir lu la charte du vendeur', status: 'recommended', action: 'view', actionText: 'Voir' },
     ];
 
-    // Fix: Explicitly type the array to match component props
-    const verifiedSellerRequirements: React.ComponentProps<typeof RequirementItem>[] = [
-        { label: "Obtenir le niveau vendeur", status: "incomplete" },
-        { label: "Bénéficier de l'offre ComeUp Plus Premium", status: "incomplete", actionText: "Modifier" },
-        { label: "Avoir terminé plus de 10 ventes sur ComeUp", status: "incomplete", progress: "0 / 10" },
-        { label: "Avoir une photo de profil vérifiée par ComeUp", status: "incomplete", actionText: "Modifier" },
+    const verifiedSellerRequirements: Requirement[] = [
+        { name: 'Obtenir le niveau vendeur', status: 'incomplete' },
+        { name: 'Bénéficier de l\'offre MuslimUp Plus Premium', status: 'incomplete', action: 'modify', actionText: 'Modifier' },
+        { name: 'Avoir terminé plus de 10 ventes sur MuslimUp', status: 'incomplete', progress: { current: 0, total: 10 } },
+        { name: 'Avoir une photo de profil vérifiée par MuslimUp', status: 'incomplete', action: 'modify', actionText: 'Modifier' },
     ];
+
+
+    const completedSellerTasks = sellerRequirements.filter(r => r.status === 'complete' || r.status === 'recommended').length;
+    const completedVerifiedTasks = verifiedSellerRequirements.filter(r => r.status === 'complete').length;
 
     return (
-        <div className="bg-gray-950 min-h-screen pt-20">
+        <div className="pt-24 bg-gray-950 min-h-screen">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                <div className="grid grid-cols-1 lg:grid-cols-4 xl:grid-cols-5 gap-12">
-                    <aside className="lg:col-span-1 xl:col-span-1 bg-gray-900 p-4 rounded-xl border border-gray-800 self-start sticky top-24">
-                        <nav className="space-y-1">
-                            <SidebarNavItem icon={TableCellsIcon} label="Tableau de bord" />
-                            <SidebarNavItem icon={RectangleStackIcon} label="Services" />
-                            <SidebarNavItem icon={RocketLaunchIcon} label="Services sponsorisés" />
-                            <SidebarNavItem icon={ShoppingBagIcon} label="Commandes" />
-                            <SidebarNavItem icon={WalletIcon} label="Portefeuille" />
-                            <SidebarNavItem icon={DocumentTextIcon} label="Factures" />
-                            <SidebarNavItem icon={AcademicCapIcon} label="Formations" />
-                            <SidebarNavItem icon={ChatBubbleLeftRightIcon} label="Coaching" />
-                            
-                            <div className="!my-4 border-t border-gray-800"></div>
-                            
-                            <SidebarHeader label="Paramètres de vente" />
-                            <SidebarNavItem icon={UserIcon} label="Mon compte vendeur" isActive={true} isSubItem={false} />
-                            <SidebarNavItem icon={UserIcon} label="Mon profil public" isSubItem={true} />
-                            <SidebarNavItem icon={IdentificationIcon} label="Mes coordonnées" isSubItem={true} />
-                            
-                            <div className="!my-4 border-t border-gray-800"></div>
-
-                            <div className="bg-black rounded-lg p-3">
-                                <SidebarNavItem icon={SparklesIcon} label="ComeUp Plus" />
-                                <a href="#" className="flex items-center justify-between mt-2 pl-11 text-sm text-gray-300 hover:text-teal-400">
-                                    Gérer mon offre
-                                    <ArrowTopRightOnSquareIcon className="h-4 w-4" />
-                                </a>
-                            </div>
-
-                        </nav>
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                    <aside className="lg:col-span-1">
+                       <Sidebar activeItem={activeItem} setActiveItem={setActiveItem} />
                     </aside>
-
-                    <main className="lg:col-span-3 xl:col-span-4 space-y-10">
-                         <div>
+                    <main className="lg:col-span-3">
+                        <div className="bg-gray-900 p-8 rounded-lg">
                             <h1 className="text-3xl font-bold text-white">Mon compte vendeur</h1>
-                            <p className="text-gray-400 mt-2 max-w-3xl">
-                                Le niveau de votre compte vous permet d'accéder à différentes fonctionnalités sur MuslimUp. Pour obtenir le niveau désiré, il vous suffit de compléter toutes les conditions requises. Attention cependant : à tout moment, si une condition n'est plus remplie, celui-ci peut être invalidé. <a href="#" className="text-teal-400 font-medium underline">Plus d'informations</a>
+                            <p className="mt-2 text-gray-400">
+                                Le niveau de votre compte vous permet d'accéder à différentes fonctionnalités sur MuslimUp. Pour obtenir le niveau désiré, il vous suffit de compléter toutes les conditions requises. Attention cependant : à tout moment, si une condition n'est plus remplie, celui-ci peut être invalidé. <a href="#" className="text-teal-400 font-semibold hover:underline">Plus d'informations</a>
                             </p>
-                        </div>
-                        
-                        <ProgressSection
-                            title="Vendeur"
-                            completed={3}
-                            total={6}
-                            description="Il s'agit du niveau minimum nécessaire pour pouvoir créer des services sur MuslimUp, recevoir des commandes de la part de clients, ainsi que retirer vos gains."
-                            requirements={sellerRequirements}
-                        />
 
-                        <ProgressSection
-                            title="Vendeur vérifié"
-                            completed={0}
-                            total={4}
-                            description={
-                                <>
-                                Si vous souhaitez devenir vendeur vérifié et afficher sur votre profil et vos services ce statut privilégié, il vous faut remplir plusieurs conditions supplémentaires. Ce niveau n'est pas obligatoire pour vendre. <a href="#" className="text-teal-400 font-medium underline">Plus d'informations</a>.
-                                </>
-                            }
-                            requirements={verifiedSellerRequirements}
-                        />
+                            <section className="mt-10">
+                                <div className="flex items-center justify-between p-4 rounded-t-lg bg-gray-800 border border-gray-700 border-b-0">
+                                    <div className="flex items-center">
+                                        <div className="flex-shrink-0 flex items-center justify-center h-8 w-8 rounded-full bg-gray-700 text-white">
+                                            <PlusIcon className="h-5 w-5" />
+                                        </div>
+                                        <h2 className="ml-4 text-xl font-bold text-white">Vendeur</h2>
+                                    </div>
+                                    <div className="flex items-center space-x-3">
+                                        <span className="text-sm font-medium text-gray-300">{completedSellerTasks}/{sellerRequirements.length}</span>
+                                        <div className="w-24 h-2 bg-gray-700 rounded-full">
+                                            <div className="h-2 bg-teal-500 rounded-full" style={{ width: `${(completedSellerTasks / sellerRequirements.length) * 100}%`}}></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="p-6 rounded-b-lg bg-gray-800/50 border border-gray-700 border-t-0">
+                                    <p className="text-gray-400 mb-6">
+                                        Il s'agit du niveau minimum nécessaire pour pouvoir créer des services sur MuslimUp, recevoir des commandes de la part de clients, ainsi que retirer vos gains.
+                                    </p>
+                                    <h3 className="font-semibold text-white mb-4">Conditions requises</h3>
+                                    <div className="space-y-3">
+                                        {sellerRequirements.map(req => <RequirementItem key={req.name} {...req} />)}
+                                    </div>
+                                </div>
+                            </section>
+
+                             <section className="mt-10">
+                                <div className="flex items-center justify-between p-4 rounded-t-lg bg-gray-800 border border-gray-700 border-b-0">
+                                    <div className="flex items-center">
+                                        <div className="flex-shrink-0 flex items-center justify-center h-8 w-8 rounded-full bg-gray-700 text-white">
+                                            <PlusIcon className="h-5 w-5" />
+                                        </div>
+                                        <h2 className="ml-4 text-xl font-bold text-white">Vendeur vérifié</h2>
+                                    </div>
+                                    <div className="flex items-center space-x-3">
+                                        <span className="text-sm font-medium text-gray-300">{completedVerifiedTasks}/{verifiedSellerRequirements.length}</span>
+                                        <div className="w-24 h-2 bg-gray-700 rounded-full">
+                                            <div className="h-2 bg-teal-500 rounded-full" style={{ width: `${(completedVerifiedTasks / verifiedSellerRequirements.length) * 100}%`}}></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="p-6 rounded-b-lg bg-gray-800/50 border border-gray-700 border-t-0">
+                                    <p className="text-gray-400 mb-6">
+                                       Si vous souhaitez devenir vendeur vérifié et afficher sur votre profil et vos services ce statut privilégié, il vous faut remplir plusieurs conditions supplémentaires. Ce niveau n'est pas obligatoire pour vendre. <a href="#" className="text-teal-400 font-semibold hover:underline">Plus d'informations</a>.
+                                    </p>
+                                    <h3 className="font-semibold text-white mb-4">Conditions requises</h3>
+                                    <div className="space-y-3">
+                                        {verifiedSellerRequirements.map(req => <RequirementItem key={req.name} {...req} />)}
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
                     </main>
                 </div>
             </div>

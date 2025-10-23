@@ -13,6 +13,7 @@ import FaqPage from './components/FaqPage';
 import TrustAndSafetyPage from './components/TrustAndSafetyPage';
 import AuthModal from './components/AuthModal';
 import CreateServicePage from './components/CreateServicePage';
+import SellerAccountPage from './components/SellerAccountPage';
 import FloatingChatButton from './components/FloatingChatButton';
 
 import { CATEGORIES, FREELANCERS, SERVICES, TESTIMONIALS } from './constants';
@@ -293,6 +294,9 @@ const App: React.FC = () => {
     }
 
     if (activeInfoPage) {
+        if (activeInfoPage === 'seller-account') {
+            return <SellerAccountPage />;
+        }
         if (activeInfoPage === 'how-it-works') return <HowItWorksPage />;
         if (activeInfoPage === 'values') return <ValuesPage />;
         if (activeInfoPage === 'become-seller') {

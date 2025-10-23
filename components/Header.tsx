@@ -23,7 +23,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, onAuthClick, isAuthenticate
           <div className="flex items-center space-x-2 sm:space-x-4">
             {isAuthenticated ? (
               <>
-                {isSeller ? (
+                {!isSeller ? (
                    <button
                       onClick={() => onNavigate('become-seller')}
                       className="hidden md:inline-block px-5 py-2.5 text-sm font-semibold text-teal-400 bg-transparent rounded-lg border border-teal-400 hover:bg-teal-400 hover:text-gray-900 transition-colors"
@@ -39,7 +39,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, onAuthClick, isAuthenticate
                     </button>
                 )}
                 <button 
-                  onClick={() => { /* Gérer la navigation vers le tableau de bord */}} 
+                  onClick={() => onNavigate('seller-account')}
                   className="flex items-center space-x-2 text-base font-medium text-gray-300 hover:text-teal-400 transition-colors px-3 py-2"
                 >
                   <UserCircleIcon className="h-6 w-6" />

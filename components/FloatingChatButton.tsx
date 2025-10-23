@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ChatBubbleBottomCenterTextIcon, XMarkIcon, PaperAirplaneIcon, CheckBadgeIcon } from './icons';
+import { ChatBubbleOvalLeftEllipsisIcon, XMarkIcon, PaperAirplaneIcon, CheckBadgeIcon } from './icons';
 
 const FloatingChatButton: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -109,7 +109,7 @@ const FloatingChatButton: React.FC = () => {
                 aria-label="Ouvrir le chat"
             >
                 <div className={`transition-transform duration-300 absolute ${isOpen ? 'rotate-45 scale-0 opacity-0' : 'rotate-0 scale-100 opacity-100'}`}>
-                    <ChatBubbleBottomCenterTextIcon className="h-8 w-8" />
+                    <ChatBubbleOvalLeftEllipsisIcon className="h-8 w-8" />
                 </div>
                 <div className={`transition-transform duration-300 absolute ${isOpen ? 'rotate-0 scale-100 opacity-100' : '-rotate-45 scale-0 opacity-0'}`}>
                     <XMarkIcon className="h-8 w-8" />

@@ -25,7 +25,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ value, onChange, onSearch }) => {
           name="search"
           id="search"
           className="block w-full h-16 pl-16 pr-36 py-3 border border-white/10 rounded-xl text-lg bg-gray-800/50 text-white placeholder-gray-400 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-inner shadow-black/20 transition-all duration-300"
-          placeholder="Ex: logo, site web, calligraphie..."
+          placeholder="Rechercher..."
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}

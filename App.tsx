@@ -27,11 +27,18 @@ const HomePage: React.FC<{
 }> = ({ onServiceClick, freelancersMap, onNavigate, services }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
-  const handleSearch = () => {
-    console.log('Searching for:', searchQuery);
+  const handleSearch = (query?: string) => {
+    const searchTerm = typeof query === 'string' ? query : searchQuery;
+    if (!searchTerm.trim()) return;
+    console.log('Searching for:', searchTerm);
     // Search logic would go here
   };
   
+  const handleSuggestionClick = (suggestion: string) => {
+    setSearchQuery(suggestion);
+    handleSearch(suggestion);
+  };
+
   return (
     <main>
       {/* Hero Section */}
@@ -50,7 +57,13 @@ const HomePage: React.FC<{
             Mettez en relation vos ambitions avec les compétences de notre communauté. La marketplace des freelances musulmans.
           </p>
           <div className="mt-12">
-            <SearchBar value={searchQuery} onChange={setSearchQuery} onSearch={handleSearch} />
+            <SearchBar value={searchQuery} onChange={setSearchQuery} onSearch={() => handleSearch()} />
+            <div className="mt-5 flex items-center justify-center flex-wrap gap-x-8 gap-y-2 text-lg text-white">
+              <button onClick={() => handleSuggestionClick('logo')} className="hover:text-teal-300 transition-colors">logo</button>
+              <button onClick={() => handleSuggestionClick('site web')} className="hover:text-teal-300 transition-colors">site web</button>
+              <button onClick={() => handleSuggestionClick('find clients')} className="hover:text-teal-300 transition-colors">find clients</button>
+              <button onClick={() => handleSuggestionClick('montage vidéo')} className="hover:text-teal-300 transition-colors">montage vidéo</button>
+            </div>
           </div>
         </div>
       </section>

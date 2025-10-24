@@ -23,6 +23,18 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, onAuthClick, isAuthenticate
           <div className="flex items-center space-x-2 sm:space-x-4">
             {isAuthenticated ? (
               <>
+                <button
+                  onClick={() => onNavigate('messages')}
+                  className="px-3 py-2 text-sm font-medium text-gray-300 hover:text-teal-400 transition-colors"
+                >
+                  Messages
+                </button>
+                <button
+                  onClick={() => onNavigate('orders')}
+                  className="px-3 py-2 text-sm font-medium text-gray-300 hover:text-teal-400 transition-colors"
+                >
+                  Commandes
+                </button>
                 {!isSeller ? (
                    <button
                       onClick={() => onNavigate('become-seller')}
@@ -38,7 +50,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, onAuthClick, isAuthenticate
                       Créer un service
                     </button>
                 )}
-                <button 
+                <button
                   onClick={() => onNavigate('seller-account')}
                   className="flex items-center space-x-2 text-base font-medium text-gray-300 hover:text-teal-400 transition-colors px-3 py-2"
                 >

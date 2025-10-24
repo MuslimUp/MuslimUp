@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Service, Freelancer } from '../types';
 import { StarIcon, ArrowLeftIcon, CheckIcon } from './icons';
 import TestimonialCard from './TestimonialCard';
 import FreelancerProfileCard from './FreelancerProfileCard';
 import { TESTIMONIALS } from '../constants';
+import { useOrders } from '../hooks/useOrders';
+import { supabase } from '../lib/supabase';
 
 interface ServiceDetailPageProps {
   service: Service;
@@ -13,7 +15,34 @@ interface ServiceDetailPageProps {
 }
 
 const ServiceDetailPage: React.FC<ServiceDetailPageProps> = ({ service, freelancer, onBack, onFreelancerClick }) => {
-  const relatedTestimonial = TESTIMONIALS[0]; // Placeholder for related testimonial logic
+  const relatedTestimonial = TESTIMONIALS[0];
+  const { createOrder } = useOrders();
+  const [isOrdering, setIsOrdering] = useState(false);
+  const [showOrderModal, setShowOrderModal] = useState(false);
+  const [requirements, setRequirements] = useState('');
+
+  const handleOrderClick = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      alert('Vous devez être connecté pour commander');
+      return;
+    }
+    setShowOrderModal(true);
+  };
+
+  const handleConfirmOrder = async () => {
+    setIsOrdering(true);
+    try {
+      await createOrder(service.id, service.freelancerId, service.price, requirements);
+      alert('Commande créée avec succès !');
+      setShowOrderModal(false);
+      setRequirements('');
+    } catch (error: any) {
+      alert(error.message || 'Erreur lors de la création de la commande');
+    } finally {
+      setIsOrdering(false);
+    }
+  }; // Placeholder for related testimonial logic
 
   return (
     <div className="pt-24 bg-gray-900">
@@ -105,7 +134,10 @@ const ServiceDetailPage: React.FC<ServiceDetailPageProps> = ({ service, freelanc
                     </ul>
                 </div>
                 <div className="border-t border-white/10 p-6 space-y-4">
-                  <button className="w-full h-12 px-8 bg-teal-500 text-gray-900 font-semibold rounded-lg hover:bg-teal-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-teal-500 transition-colors">
+                  <button
+                    onClick={handleOrderClick}
+                    className="w-full h-12 px-8 bg-teal-500 text-gray-900 font-semibold rounded-lg hover:bg-teal-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-teal-500 transition-colors"
+                  >
                     Commander
                   </button>
                   <button className="w-full h-12 px-8 bg-white/5 text-white font-semibold rounded-lg border border-white/10 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-gray-500 transition-colors">
@@ -118,6 +150,52 @@ const ServiceDetailPage: React.FC<ServiceDetailPageProps> = ({ service, freelanc
           </div>
         </div>
       </div>
+
+      {showOrderModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 backdrop-blur-sm" onClick={() => setShowOrderModal(false)}>
+          <div
+            className="relative w-full max-w-lg p-8 bg-gray-800 rounded-2xl shadow-2xl border border-gray-700"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-2xl font-bold text-white mb-4">Commander ce service</h2>
+            <p className="text-gray-300 mb-6">
+              Service: <span className="font-semibold">{service.title}</span>
+            </p>
+            <p className="text-gray-300 mb-6">
+              Prix: <span className="font-semibold text-teal-400">{service.price}€</span>
+            </p>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Décrivez vos besoins (optionnel)
+              </label>
+              <textarea
+                value={requirements}
+                onChange={(e) => setRequirements(e.target.value)}
+                rows={4}
+                className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-teal-500 focus:outline-none"
+                placeholder="Détails supplémentaires pour le vendeur..."
+              />
+            </div>
+
+            <div className="flex gap-4">
+              <button
+                onClick={handleConfirmOrder}
+                disabled={isOrdering}
+                className="flex-1 px-6 py-3 bg-teal-500 text-white font-semibold rounded-lg hover:bg-teal-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {isOrdering ? 'En cours...' : 'Confirmer la commande'}
+              </button>
+              <button
+                onClick={() => setShowOrderModal(false)}
+                className="px-6 py-3 bg-gray-700 text-white font-semibold rounded-lg hover:bg-gray-600 transition-colors"
+              >
+                Annuler
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -16,7 +16,11 @@ import AuthModal from './components/AuthModal';
 import CreateServicePage from './components/CreateServicePage';
 import SellerAccountPage from './components/SellerAccountPage';
 import FloatingChatButton from './components/FloatingChatButton';
+import MessagesPage from './components/MessagesPage';
+import OrdersPage from './components/OrdersPage';
 import { supabase } from './lib/supabase';
+import { useServices } from './hooks/useServices';
+import { useProfiles } from './hooks/useProfiles';
 
 import { CATEGORIES, FREELANCERS, SERVICES, TESTIMONIALS } from './constants';
 import { Freelancer, Service } from './types';
@@ -30,11 +34,19 @@ const HomePage: React.FC<{
 }> = ({ onServiceClick, freelancersMap, onNavigate, services }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
+  const filteredServices = searchQuery.trim()
+    ? services.filter(service =>
+        service.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        service.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        service.category.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : services;
+
   const handleSearch = (query?: string) => {
     const searchTerm = typeof query === 'string' ? query : searchQuery;
-    if (!searchTerm.trim()) return;
-    console.log('Searching for:', searchTerm);
-    // Search logic would go here
+    if (searchTerm.trim()) {
+      setSearchQuery(searchTerm);
+    }
   };
   
   const handleSuggestionClick = (suggestion: string) => {
@@ -89,17 +101,25 @@ const HomePage: React.FC<{
       {/* Featured Services Section */}
       <section className="py-20 bg-gray-950">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-4xl font-bold text-center text-white mb-12">Services populaires</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {services.slice(0, 10).map(service => (
-              <ServiceCard
-                key={service.id}
-                service={service}
-                freelancer={freelancersMap[service.freelancerId]}
-                onClick={() => onServiceClick(service.id)}
-              />
-            ))}
-          </div>
+          <h2 className="text-4xl font-bold text-center text-white mb-12">
+            {searchQuery ? 'Résultats de recherche' : 'Services populaires'}
+          </h2>
+          {filteredServices.length === 0 ? (
+            <div className="text-center py-20">
+              <p className="text-gray-400 text-xl">Aucun service trouvé pour "{searchQuery}"</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {filteredServices.slice(0, 20).map(service => (
+                <ServiceCard
+                  key={service.id}
+                  service={service}
+                  freelancer={freelancersMap[service.freelancerId]}
+                  onClick={() => onServiceClick(service.id)}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </section>
       
@@ -156,6 +176,9 @@ const HomePage: React.FC<{
 
 
 const App: React.FC = () => {
+  const { services: dbServices, loading: servicesLoading, createService } = useServices();
+  const { profiles: dbProfiles, loading: profilesLoading, becomeSeller: becomeSellerDB } = useProfiles();
+
   const [activeInfoPage, setActiveInfoPage] = useState<string | null>(null);
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
   const [selectedFreelancerId, setSelectedFreelancerId] = useState<string | null>(null);
@@ -164,23 +187,53 @@ const App: React.FC = () => {
   const [isSeller, setIsSeller] = useState(false);
   const [loginSuccessAction, setLoginSuccessAction] = useState<'default' | 'becomeSeller'>('default');
   const [isCreatingService, setIsCreatingService] = useState(false);
-  const [services, setServices] = useState<Service[]>(SERVICES);
+
+  const services = dbServices.length > 0 ? dbServices : SERVICES;
+  const freelancersMap = useMemo(() => {
+    const dbProfilesCount = Object.keys(dbProfiles).length;
+    if (dbProfilesCount > 0) {
+      return dbProfiles;
+    }
+    return FREELANCERS.reduce((acc, freelancer) => {
+      acc[freelancer.id] = freelancer;
+      return acc;
+    }, {} as Record<string, Freelancer>);
+  }, [dbProfiles]);
 
   useEffect(() => {
     if (supabase) {
-      supabase.auth.getSession().then(({ data: { session } }) => {
+      supabase.auth.getSession().then(async ({ data: { session } }) => {
         if (session) {
           setIsAuthenticated(true);
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('is_seller')
+            .eq('id', session.user.id)
+            .maybeSingle();
+
+          if (profile?.is_seller) {
+            setIsSeller(true);
+          }
         }
       });
 
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
         setIsAuthenticated(!!session);
-      });
 
-      if (localStorage.getItem('isSeller') === 'true') {
-          setIsSeller(true);
-      }
+        if (session) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('is_seller')
+            .eq('id', session.user.id)
+            .maybeSingle();
+
+          if (profile?.is_seller) {
+            setIsSeller(true);
+          }
+        } else {
+          setIsSeller(false);
+        }
+      });
 
       return () => subscription.unsubscribe();
     } else {
@@ -191,13 +244,6 @@ const App: React.FC = () => {
         setIsSeller(true);
       }
     }
-  }, []);
-  
-  const freelancersMap = useMemo(() => {
-    return FREELANCERS.reduce((acc, freelancer) => {
-      acc[freelancer.id] = freelancer;
-      return acc;
-    }, {} as Record<string, Freelancer>);
   }, []);
 
   const servicesMap = useMemo(() => {
@@ -251,11 +297,19 @@ const App: React.FC = () => {
     setIsAuthModalOpen(true);
   }, []);
   
-  const handleBecomeSeller = useCallback(() => {
-      localStorage.setItem('isSeller', 'true');
-      setIsSeller(true);
-      handleGoHome();
-  }, [handleGoHome]);
+  const handleBecomeSeller = useCallback(async () => {
+      try {
+        await becomeSellerDB();
+        localStorage.setItem('isSeller', 'true');
+        setIsSeller(true);
+        handleGoHome();
+      } catch (error) {
+        console.error('Erreur lors de l\'activation du compte vendeur:', error);
+        localStorage.setItem('isSeller', 'true');
+        setIsSeller(true);
+        handleGoHome();
+      }
+  }, [handleGoHome, becomeSellerDB]);
 
   const handleAuthAndBecomeSeller = useCallback(() => {
       setLoginSuccessAction('becomeSeller');
@@ -270,20 +324,16 @@ const App: React.FC = () => {
     window.scrollTo(0, 0);
   }, []);
 
-  const handleServiceCreate = useCallback((newServiceData: Omit<Service, 'id' | 'freelancerId' | 'rating' | 'reviewCount' | 'ordersInQueue'>) => {
-    const freelancerId = FREELANCERS[0].id; 
-    const newService: Service = {
-        ...newServiceData,
-        id: `s${services.length + 1 + Math.random()}`,
-        freelancerId: freelancerId,
-        rating: 0,
-        reviewCount: 0,
-        ordersInQueue: 0,
-    };
-    setServices(prevServices => [newService, ...prevServices]);
-    setIsCreatingService(false);
-    handleGoHome();
-  }, [services.length, handleGoHome]);
+  const handleServiceCreate = useCallback(async (newServiceData: Omit<Service, 'id' | 'freelancerId' | 'rating' | 'reviewCount' | 'ordersInQueue'>) => {
+    try {
+      await createService(newServiceData);
+      setIsCreatingService(false);
+      handleGoHome();
+    } catch (error: any) {
+      console.error('Erreur lors de la création du service:', error);
+      alert(error.message || 'Erreur lors de la création du service');
+    }
+  }, [createService, handleGoHome]);
 
   const handleServiceClick = useCallback((serviceId: string) => {
     setSelectedServiceId(serviceId);
@@ -319,6 +369,12 @@ const App: React.FC = () => {
     if (activeInfoPage) {
         if (activeInfoPage === 'seller-account') {
             return <SellerAccountPage />;
+        }
+        if (activeInfoPage === 'messages') {
+            return <MessagesPage />;
+        }
+        if (activeInfoPage === 'orders') {
+            return <OrdersPage />;
         }
         if (activeInfoPage === 'how-it-works') return <HowItWorksPage />;
         if (activeInfoPage === 'values') return <ValuesPage />;

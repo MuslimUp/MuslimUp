@@ -167,21 +167,30 @@ const App: React.FC = () => {
   const [services, setServices] = useState<Service[]>(SERVICES);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
+    if (supabase) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          setIsAuthenticated(true);
+        }
+      });
+
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        setIsAuthenticated(!!session);
+      });
+
+      if (localStorage.getItem('isSeller') === 'true') {
+          setIsSeller(true);
+      }
+
+      return () => subscription.unsubscribe();
+    } else {
+      if (localStorage.getItem('isAuthenticated') === 'true') {
         setIsAuthenticated(true);
       }
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsAuthenticated(!!session);
-    });
-
-    if (localStorage.getItem('isSeller') === 'true') {
+      if (localStorage.getItem('isSeller') === 'true') {
         setIsSeller(true);
+      }
     }
-
-    return () => subscription.unsubscribe();
   }, []);
   
   const freelancersMap = useMemo(() => {
@@ -207,6 +216,7 @@ const App: React.FC = () => {
   }, []);
   
   const handleLoginSuccess = useCallback(() => {
+    localStorage.setItem('isAuthenticated', 'true');
     setIsAuthenticated(true);
     setIsAuthModalOpen(false);
 
@@ -219,7 +229,10 @@ const App: React.FC = () => {
   }, [loginSuccessAction, handleGoHome]);
 
   const handleLogout = useCallback(async () => {
-    await supabase.auth.signOut();
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
+    localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('isSeller');
     setIsAuthenticated(false);
     setIsSeller(false);

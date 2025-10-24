@@ -23,6 +23,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLoginSuccess }) => {
   const [password, setPassword] = useState<string>('');
 
   useEffect(() => {
+    if (!supabase) return;
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
         setAuthState('success');
@@ -36,6 +38,12 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLoginSuccess }) => {
   }, [onLoginSuccess]);
 
   const handleGoogleLogin = async () => {
+    if (!supabase) {
+      setAuthState('error');
+      setErrorMessage('Service d\'authentification non disponible');
+      return;
+    }
+
     try {
       setAuthProvider('Google');
       setAuthState('loading');
@@ -56,6 +64,12 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLoginSuccess }) => {
     e.preventDefault();
     if (!email || !password) {
       setErrorMessage('Veuillez remplir tous les champs');
+      return;
+    }
+
+    if (!supabase) {
+      setAuthState('error');
+      setErrorMessage('Service d\'authentification non disponible');
       return;
     }
 

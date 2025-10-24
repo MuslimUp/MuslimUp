@@ -27,12 +27,14 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLoginSuccess }) => {
     if (!supabase) return;
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        setAuthState('success');
-        setTimeout(() => {
-          onLoginSuccess();
-        }, 1500);
-      }
+      (async () => {
+        if ((event === 'SIGNED_IN' || event === 'USER_UPDATED') && session) {
+          setAuthState('success');
+          setTimeout(() => {
+            onLoginSuccess();
+          }, 1500);
+        }
+      })();
     });
 
     return () => subscription.unsubscribe();

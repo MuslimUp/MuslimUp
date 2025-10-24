@@ -261,7 +261,15 @@ const App: React.FC = () => {
       setIsCreatingService(false);
       window.scrollTo(0, 0);
   }, []);
-  
+
+  const handleNavigate = useCallback((page: string) => {
+    setActiveInfoPage(page === 'home' ? null : page);
+    setSelectedServiceId(null);
+    setSelectedFreelancerId(null);
+    setIsCreatingService(false);
+    window.scrollTo(0, 0);
+  }, []);
+
   const handleLoginSuccess = useCallback(() => {
     localStorage.setItem('isAuthenticated', 'true');
     setIsAuthenticated(true);
@@ -287,14 +295,6 @@ const App: React.FC = () => {
     setIsSeller(false);
     handleGoHome();
   }, [handleGoHome]);
-
-  const handleNavigate = useCallback((page: string) => {
-    setActiveInfoPage(page === 'home' ? null : page);
-    setSelectedServiceId(null);
-    setSelectedFreelancerId(null);
-    setIsCreatingService(false);
-    window.scrollTo(0, 0);
-  }, []);
   
   const handleAuthClick = useCallback(() => {
     setLoginSuccessAction('default');

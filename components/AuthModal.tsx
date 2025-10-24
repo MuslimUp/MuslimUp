@@ -21,6 +21,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLoginSuccess }) => {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
+  const [isSignUp, setIsSignUp] = useState<boolean>(false);
 
   useEffect(() => {
     if (!supabase) return;
@@ -60,7 +61,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLoginSuccess }) => {
     }
   };
 
-  const handleEmailLogin = async (e: React.FormEvent) => {
+  const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
       setErrorMessage('Veuillez remplir tous les champs');
@@ -76,14 +77,26 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLoginSuccess }) => {
     try {
       setAuthProvider('votre e-mail');
       setAuthState('loading');
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      if (error) throw error;
+
+      if (isSignUp) {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: window.location.origin,
+          }
+        });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (error) throw error;
+      }
     } catch (error: any) {
       setAuthState('error');
-      setErrorMessage(error.message || 'Erreur lors de la connexion');
+      setErrorMessage(error.message || `Erreur lors de ${isSignUp ? 'l\'inscription' : 'la connexion'}`);
     }
   };
 
@@ -131,7 +144,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLoginSuccess }) => {
                         <div className="flex-grow border-t border-gray-300"></div>
                     </div>
 
-                    <form className="space-y-4" onSubmit={handleEmailLogin}>
+                    <form className="space-y-4" onSubmit={handleEmailAuth}>
                         <div>
                             <label htmlFor="email" className="block text-sm font-medium text-gray-700">Adresse email</label>
                             <input
@@ -155,16 +168,25 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLoginSuccess }) => {
                         <button
                             type="submit"
                             className="w-full h-12 px-8 bg-gray-900 text-white font-semibold rounded-lg hover:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-colors">
-                            Continuer avec mon adresse e-mail
+                            {isSignUp ? 'S\'inscrire' : 'Se connecter'}
                         </button>
                     </form>
+
+                    <button
+                        onClick={() => {
+                            setIsSignUp(!isSignUp);
+                            setErrorMessage('');
+                        }}
+                        className="mt-4 w-full text-center text-sm text-teal-600 hover:text-teal-700 font-medium">
+                        {isSignUp ? 'Déjà un compte ? Se connecter' : 'Pas de compte ? S\'inscrire'}
+                    </button>
 
                     <button
                         onClick={() => {
                             setAuthState('initial');
                             setErrorMessage('');
                         }}
-                        className="mt-4 w-full text-center text-sm text-gray-600 hover:text-gray-900">
+                        className="mt-2 w-full text-center text-sm text-gray-600 hover:text-gray-900">
                         Réessayer
                     </button>
                 </div>
@@ -196,7 +218,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLoginSuccess }) => {
                         <div className="flex-grow border-t border-gray-300"></div>
                     </div>
 
-                    <form className="space-y-4" onSubmit={handleEmailLogin}>
+                    <form className="space-y-4" onSubmit={handleEmailAuth}>
                         <div>
                             <label htmlFor="email" className="block text-sm font-medium text-gray-700">Adresse email</label>
                             <input
@@ -220,9 +242,18 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLoginSuccess }) => {
                         <button
                             type="submit"
                             className="w-full h-12 px-8 bg-gray-900 text-white font-semibold rounded-lg hover:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-colors">
-                            Continuer avec mon adresse e-mail
+                            {isSignUp ? 'S\'inscrire' : 'Se connecter'}
                         </button>
                     </form>
+
+                    <button
+                        onClick={() => {
+                            setIsSignUp(!isSignUp);
+                            setErrorMessage('');
+                        }}
+                        className="mt-4 w-full text-center text-sm text-teal-600 hover:text-teal-700 font-medium">
+                        {isSignUp ? 'Déjà un compte ? Se connecter' : 'Pas de compte ? S\'inscrire'}
+                    </button>
                 </div>
             )
     }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Service, ServicePackage } from '../types';
 import { supabase } from '../lib/supabase';
+import PaymentModal from './PaymentModal';
 
 interface OrderCreationPageProps {
   service: Service;
@@ -19,6 +20,8 @@ const OrderCreationPage: React.FC<OrderCreationPageProps> = ({
   const [requirements, setRequirements] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showPayment, setShowPayment] = useState(false);
+  const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPackage();
@@ -112,12 +115,13 @@ const OrderCreationPage: React.FC<OrderCreationPageProps> = ({
         .insert({
           user_id: service.sellerId || service.freelancerId,
           type: 'new_order',
-          title: 'Nouvelle commande',
-          message: `Vous avez reçu une nouvelle commande pour "${service.title}"`,
+          title: 'Nouvelle commande en attente',
+          message: `Une nouvelle commande pour "${service.title}" attend le paiement`,
           link: `/orders/${order.id}`
         });
 
-      onSuccess(order.id);
+      setCreatedOrderId(order.id);
+      setShowPayment(true);
     } catch (err: any) {
       console.error('Error creating order:', err);
       setError(err.message || 'Erreur lors de la création de la commande');
@@ -179,7 +183,7 @@ const OrderCreationPage: React.FC<OrderCreationPageProps> = ({
                 disabled={loading}
                 className="w-full bg-teal-500 text-white py-4 rounded-lg hover:bg-teal-600 transition-colors font-semibold text-lg disabled:opacity-50"
               >
-                {loading ? 'Création en cours...' : `Confirmer la commande (${selectedPackage.price}€)`}
+                {loading ? 'Création en cours...' : `Procéder au paiement (${selectedPackage.price}€)`}
               </button>
 
               <p className="text-sm text-gray-400 text-center">
@@ -238,6 +242,20 @@ const OrderCreationPage: React.FC<OrderCreationPageProps> = ({
             </div>
           </div>
         </div>
+
+        {showPayment && createdOrderId && selectedPackage && (
+          <PaymentModal
+            orderId={createdOrderId}
+            amount={selectedPackage.price}
+            onSuccess={() => {
+              setShowPayment(false);
+              onSuccess(createdOrderId);
+            }}
+            onCancel={() => {
+              setShowPayment(false);
+            }}
+          />
+        )}
       </div>
     </div>
   );

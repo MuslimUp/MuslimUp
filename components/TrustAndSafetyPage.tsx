@@ -1,35 +1,50 @@
 import React from 'react';
+import InfoPageLayout from './InfoPageLayout';
+import { ShieldCheckIcon, CheckBadgeIcon, StarIcon, UsersIcon } from './icons';
 
 const TrustAndSafetyPage: React.FC = () => {
+  const features = [
+    {
+      icon: ShieldCheckIcon,
+      title: 'Paiement 100% Sécurisé',
+      description: 'Votre paiement est détenu par MuslimUp dès la commande et n\'est versé au vendeur qu\'après votre validation. Cela garantit que le travail est effectué à votre satisfaction avant que l\'argent ne soit débloqué.',
+    },
+    {
+      icon: CheckBadgeIcon,
+      title: 'Vendeurs Vérifiés',
+      description: 'Nous mettons en avant les vendeurs qui ont prouvé leur fiabilité et la qualité de leur travail. Recherchez les badges "Vendeur Vérifié" et "Top Vendeur" pour collaborer avec les meilleurs talents de la plateforme.',
+    },
+    {
+      icon: StarIcon,
+      title: 'Système d\'avis transparent',
+      description: 'Après chaque commande, les acheteurs peuvent laisser un avis honnête sur leur expérience. Ce système de notation aide la communauté à choisir les freelances les plus compétents et les plus professionnels.',
+    },
+    {
+      icon: UsersIcon,
+      title: 'Support client réactif',
+      description: 'En cas de désaccord ou de problème, notre équipe de support est disponible pour intervenir et trouver une solution juste et rapide. Nous sommes là pour assurer une expérience positive pour tous.',
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-900 pt-24 pb-12">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-4xl font-bold text-white text-center mb-12">Confiance et sécurité</h1>
-
-        <div className="max-w-4xl mx-auto space-y-8">
-          <div className="bg-white/5 rounded-xl p-8 border border-white/10">
-            <h2 className="text-2xl font-bold text-teal-400 mb-4">Protection des paiements</h2>
-            <p className="text-gray-300">
-              Vos paiements sont sécurisés et conservés jusqu'à la validation de votre commande. Vous ne payez que pour un travail bien fait.
-            </p>
+    <InfoPageLayout
+      title="Confiance & Sécurité"
+      subtitle="Votre tranquillité d'esprit est notre priorité. Découvrez les mesures que nous prenons pour garantir des transactions sûres et fiables."
+    >
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {features.map((feature, index) => (
+          <div key={index} className="bg-gray-900/50 p-8 rounded-xl border border-gray-800 flex items-start gap-6">
+            <div className="flex-shrink-0 text-teal-400">
+                <feature.icon className="h-10 w-10" />
+            </div>
+            <div>
+                <h3 className="text-xl font-bold text-white mb-2">{feature.title}</h3>
+                <p className="text-gray-300 leading-relaxed">{feature.description}</p>
+            </div>
           </div>
-
-          <div className="bg-white/5 rounded-xl p-8 border border-white/10">
-            <h2 className="text-2xl font-bold text-teal-400 mb-4">Vérification des vendeurs</h2>
-            <p className="text-gray-300">
-              Tous nos freelances sont vérifiés pour garantir la qualité et la fiabilité des services proposés.
-            </p>
-          </div>
-
-          <div className="bg-white/5 rounded-xl p-8 border border-white/10">
-            <h2 className="text-2xl font-bold text-teal-400 mb-4">Support client</h2>
-            <p className="text-gray-300">
-              Notre équipe est disponible pour vous aider à résoudre tout problème ou litige rapidement et équitablement.
-            </p>
-          </div>
-        </div>
+        ))}
       </div>
-    </div>
+    </InfoPageLayout>
   );
 };
 

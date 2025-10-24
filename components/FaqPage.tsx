@@ -1,22 +1,43 @@
-import React from 'react';
+import React, { useState } from 'react';
+import InfoPageLayout from './InfoPageLayout';
 import { FAQ_ITEMS } from '../constants';
+import { ChevronDownIcon } from './icons';
 
 const FaqPage: React.FC = () => {
-  return (
-    <div className="min-h-screen bg-gray-900 pt-24 pb-12">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-4xl font-bold text-white text-center mb-12">Questions fréquentes</h1>
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
 
-        <div className="max-w-3xl mx-auto space-y-6">
-          {FAQ_ITEMS.map((item, index) => (
-            <div key={index} className="bg-white/5 rounded-xl p-6 border border-white/10">
-              <h3 className="text-xl font-bold text-white mb-3">{item.q}</h3>
-              <p className="text-gray-300">{item.a}</p>
+  const toggleFaq = (index: number) => {
+    setOpenIndex(openIndex === index ? null : index);
+  };
+
+  return (
+    <InfoPageLayout
+      title="Foire Aux Questions"
+      subtitle="Trouvez les réponses aux questions les plus fréquemment posées sur MuslimUp."
+    >
+      <div className="divide-y divide-gray-800 border-t border-b border-gray-800">
+        {FAQ_ITEMS.map((item, index) => (
+          <div key={index}>
+            <button
+              onClick={() => toggleFaq(index)}
+              className="w-full flex justify-between items-center text-left py-6 px-2 focus:outline-none"
+            >
+              <span className="text-lg font-semibold text-white">{item.q}</span>
+              <ChevronDownIcon
+                className={`h-6 w-6 text-gray-400 transition-transform duration-300 ${openIndex === index ? 'rotate-180' : ''}`}
+              />
+            </button>
+            <div
+              className={`overflow-hidden transition-all duration-500 ease-in-out ${openIndex === index ? 'max-h-96' : 'max-h-0'}`}
+            >
+              <div className="pb-6 px-2 prose prose-invert prose-lg text-gray-300">
+                <p>{item.a}</p>
+              </div>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
-    </div>
+    </InfoPageLayout>
   );
 };
 

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { UserCircleIcon } from './icons';
 
 interface HeaderProps {
   onNavigate: (page: string) => void;
@@ -9,103 +10,69 @@ interface HeaderProps {
   onCreateServiceClick: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({
-  onNavigate,
-  onAuthClick,
-  isAuthenticated,
-  isSeller,
-  onLogout,
-  onCreateServiceClick
-}) => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
+const Header: React.FC<HeaderProps> = ({ onNavigate, onAuthClick, isAuthenticated, isSeller, onLogout, onCreateServiceClick }) => {
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-gray-900/95 backdrop-blur-sm border-b border-white/10">
+    <header className="fixed top-0 left-0 right-0 z-40 bg-gray-900/60 backdrop-blur-xl border-b border-white/10">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
-          <button
-            onClick={() => onNavigate('home')}
-            className="text-2xl font-bold text-white hover:text-teal-400 transition-colors"
-          >
-            MuslimUp
-          </button>
-
-          <nav className="hidden md:flex items-center gap-8">
-            <button onClick={() => onNavigate('how-it-works')} className="text-gray-300 hover:text-white transition-colors">
-              Comment ça marche
+        <div className="flex h-20 items-center justify-between">
+          <div className="flex items-center">
+            <button onClick={() => onNavigate('home')} className="text-3xl font-bold text-white focus:outline-none">
+              Muslim<span className="text-teal-400">Up</span>
             </button>
-            <button onClick={() => onNavigate('become-seller')} className="text-gray-300 hover:text-white transition-colors">
-              Devenir vendeur
-            </button>
-
+          </div>
+          <div className="flex items-center space-x-2 sm:space-x-4">
             {isAuthenticated ? (
               <>
-                {isSeller && (
-                  <button
-                    onClick={onCreateServiceClick}
-                    className="px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors"
-                  >
-                    Créer un service
-                  </button>
+                {!isSeller ? (
+                   <button
+                      onClick={() => onNavigate('become-seller')}
+                      className="hidden md:inline-block px-5 py-2.5 text-sm font-semibold text-teal-400 bg-transparent rounded-lg border border-teal-400 hover:bg-teal-400 hover:text-gray-900 transition-colors"
+                    >
+                      Devenir vendeur
+                    </button>
+                ) : (
+                   <button
+                      onClick={onCreateServiceClick}
+                      className="hidden md:inline-block px-5 py-2.5 text-sm font-semibold text-gray-900 bg-teal-400 rounded-lg hover:bg-teal-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-teal-400 transition-colors"
+                    >
+                      Créer un service
+                    </button>
                 )}
-                <button onClick={() => onNavigate('dashboard')} className="text-gray-300 hover:text-white transition-colors">
-                  Tableau de bord
+                <button 
+                  onClick={() => onNavigate('seller-account')}
+                  className="flex items-center space-x-2 text-base font-medium text-gray-300 hover:text-teal-400 transition-colors px-3 py-2"
+                >
+                  <UserCircleIcon className="h-6 w-6" />
+                  <span className="hidden sm:inline">Mon Compte</span>
                 </button>
-                <button onClick={onLogout} className="text-gray-300 hover:text-white transition-colors">
+                <button
+                  onClick={onLogout}
+                  className="px-3 py-2 text-sm font-medium text-gray-400 hover:text-white transition-colors"
+                >
                   Déconnexion
                 </button>
               </>
             ) : (
-              <button
-                onClick={onAuthClick}
-                className="px-6 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors"
-              >
-                Connexion
-              </button>
-            )}
-          </nav>
-
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden text-white"
-          >
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-        </div>
-
-        {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-white/10">
-            <div className="flex flex-col gap-4">
-              <button onClick={() => { onNavigate('how-it-works'); setIsMenuOpen(false); }} className="text-gray-300 hover:text-white transition-colors text-left">
-                Comment ça marche
-              </button>
-              <button onClick={() => { onNavigate('become-seller'); setIsMenuOpen(false); }} className="text-gray-300 hover:text-white transition-colors text-left">
-                Devenir vendeur
-              </button>
-              {isAuthenticated ? (
-                <>
-                  {isSeller && (
-                    <button onClick={() => { onCreateServiceClick(); setIsMenuOpen(false); }} className="text-teal-400 hover:text-teal-300 transition-colors text-left">
-                      Créer un service
-                    </button>
-                  )}
-                  <button onClick={() => { onNavigate('dashboard'); setIsMenuOpen(false); }} className="text-gray-300 hover:text-white transition-colors text-left">
-                    Tableau de bord
-                  </button>
-                  <button onClick={() => { onLogout(); setIsMenuOpen(false); }} className="text-gray-300 hover:text-white transition-colors text-left">
-                    Déconnexion
-                  </button>
-                </>
-              ) : (
-                <button onClick={() => { onAuthClick(); setIsMenuOpen(false); }} className="text-teal-400 hover:text-teal-300 transition-colors text-left">
+              <>
+                <button
+                  onClick={() => onNavigate('become-seller')}
+                  className="hidden md:inline-block px-5 py-2.5 text-sm font-semibold text-teal-400 bg-transparent rounded-lg border border-teal-400 hover:bg-teal-400 hover:text-gray-900 transition-colors"
+                >
+                  Devenir vendeur
+                </button>
+                <button onClick={onAuthClick} className="hidden sm:inline-block text-base font-medium text-gray-300 hover:text-teal-400 transition-colors px-3 py-2">
                   Connexion
                 </button>
-              )}
-            </div>
+                <button
+                  onClick={onAuthClick}
+                  className="px-5 py-2.5 text-sm font-semibold text-gray-900 bg-teal-400 rounded-lg hover:bg-teal-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-teal-400 transition-colors"
+                >
+                  S'inscrire
+                </button>
+              </>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </header>
   );

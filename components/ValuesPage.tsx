@@ -1,35 +1,41 @@
 import React from 'react';
+import InfoPageLayout from './InfoPageLayout';
+import { SparklesIcon, ScaleIcon, HeartIcon } from './icons';
 
 const ValuesPage: React.FC = () => {
+    const values = [
+        {
+            icon: SparklesIcon,
+            name: 'Excellence (Ihsan)',
+            description: "Nous encourageons nos freelances à viser l'excellence dans chaque projet, en fournissant un travail de haute qualité qui dépasse les attentes. Pour nous, le professionnalisme est une manifestation de notre foi.",
+        },
+        {
+            icon: ScaleIcon,
+            name: 'Intégrité (Amana)',
+            description: "La confiance est le fondement de notre communauté. Nous promouvons des échanges honnêtes, une communication transparente et un respect scrupuleux des engagements, tant pour les acheteurs que pour les vendeurs.",
+        },
+        {
+            icon: HeartIcon,
+            name: 'Communauté (Oumma)',
+            description: "MuslimUp est plus qu'une marketplace, c'est un lieu de rencontre et d'entraide. Nous cherchons à renforcer les liens au sein de la communauté en facilitant la collaboration et en célébrant les succès de chacun.",
+        },
+    ];
+
   return (
-    <div className="min-h-screen bg-gray-900 pt-24 pb-12">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-4xl font-bold text-white text-center mb-12">Nos valeurs</h1>
-
-        <div className="max-w-4xl mx-auto space-y-8">
-          <div className="bg-white/5 rounded-xl p-8 border border-white/10">
-            <h2 className="text-2xl font-bold text-teal-400 mb-4">Transparence</h2>
-            <p className="text-gray-300">
-              Nous croyons en une communication claire et honnête entre clients et freelances. Pas de frais cachés, pas de surprises.
-            </p>
-          </div>
-
-          <div className="bg-white/5 rounded-xl p-8 border border-white/10">
-            <h2 className="text-2xl font-bold text-teal-400 mb-4">Qualité</h2>
-            <p className="text-gray-300">
-              Nous sélectionnons soigneusement nos freelances pour garantir un niveau de qualité élevé dans tous les services proposés.
-            </p>
-          </div>
-
-          <div className="bg-white/5 rounded-xl p-8 border border-white/10">
-            <h2 className="text-2xl font-bold text-teal-400 mb-4">Communauté</h2>
-            <p className="text-gray-300">
-              MuslimUp est plus qu'une plateforme, c'est une communauté qui partage des valeurs communes et s'entraide.
-            </p>
-          </div>
+    <InfoPageLayout
+      title="Nos Valeurs"
+      subtitle="Les principes qui guident notre communauté et façonnent chaque interaction sur notre plateforme."
+    >
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 text-center">
+            {values.map((value) => (
+                <div key={value.name} className="bg-white/5 p-8 rounded-xl border border-white/10">
+                    <value.icon className="h-12 w-12 mx-auto text-teal-400 mb-6" />
+                    <h3 className="text-2xl font-bold text-white mb-3">{value.name}</h3>
+                    <p className="text-gray-300 leading-relaxed">{value.description}</p>
+                </div>
+            ))}
         </div>
-      </div>
-    </div>
+    </InfoPageLayout>
   );
 };
 

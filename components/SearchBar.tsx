@@ -1,4 +1,5 @@
 import React from 'react';
+import { SearchIcon } from './icons';
 
 interface SearchBarProps {
   value: string;
@@ -7,29 +8,39 @@ interface SearchBarProps {
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({ value, onChange, onSearch }) => {
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSearch();
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      onSearch();
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
+    <div className="w-full max-w-3xl mx-auto">
       <div className="relative">
+        <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
+          <SearchIcon className="h-6 w-6 text-gray-400" />
+        </div>
         <input
-          type="text"
+          type="search"
+          name="search"
+          id="search"
+          className="block w-full h-16 pl-16 pr-36 py-3 border border-white/10 rounded-xl text-lg bg-gray-800/50 text-white placeholder-gray-400 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-inner shadow-black/20 transition-all duration-300"
+          placeholder="Rechercher..."
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="Rechercher un service..."
-          className="w-full px-6 py-4 rounded-full bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 text-lg"
+          onKeyDown={handleKeyDown}
         />
-        <button
-          type="submit"
-          className="absolute right-2 top-1/2 -translate-y-1/2 px-8 py-2 bg-teal-500 text-white rounded-full hover:bg-teal-600 transition-colors font-semibold"
-        >
-          Rechercher
-        </button>
+        <div className="absolute inset-y-0 right-0 flex items-center pr-2.5">
+            <button
+                type="button"
+                onClick={onSearch}
+                className="h-12 px-8 bg-teal-500 text-gray-900 font-semibold rounded-lg hover:bg-teal-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-teal-500 transition-colors"
+            >
+                Rechercher
+            </button>
+        </div>
       </div>
-    </form>
+    </div>
   );
 };
 

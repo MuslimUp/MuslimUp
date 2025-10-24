@@ -24,6 +24,12 @@ const Header: React.FC<HeaderProps> = ({ onNavigate, onAuthClick, isAuthenticate
             {isAuthenticated ? (
               <>
                 <button
+                  onClick={() => onNavigate('dashboard')}
+                  className="px-3 py-2 text-sm font-medium text-gray-300 hover:text-teal-400 transition-colors"
+                >
+                  Tableau de bord
+                </button>
+                <button
                   onClick={() => onNavigate('messages')}
                   className="px-3 py-2 text-sm font-medium text-gray-300 hover:text-teal-400 transition-colors"
                 >

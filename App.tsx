@@ -18,6 +18,7 @@ import SellerAccountPage from './components/SellerAccountPage';
 import FloatingChatButton from './components/FloatingChatButton';
 import MessagesPage from './components/MessagesPage';
 import OrdersPage from './components/OrdersPage';
+import DashboardPage from './components/DashboardPage';
 import { supabase } from './lib/supabase';
 import { useServices } from './hooks/useServices';
 import { useProfiles } from './hooks/useProfiles';
@@ -270,9 +271,11 @@ const App: React.FC = () => {
         localStorage.setItem('isSeller', 'true');
         setIsSeller(true);
         handleGoHome();
+    } else {
+        handleNavigate('dashboard');
     }
     setLoginSuccessAction('default');
-  }, [loginSuccessAction, handleGoHome]);
+  }, [loginSuccessAction, handleGoHome, handleNavigate]);
 
   const handleLogout = useCallback(async () => {
     if (supabase) {
@@ -282,7 +285,8 @@ const App: React.FC = () => {
     localStorage.removeItem('isSeller');
     setIsAuthenticated(false);
     setIsSeller(false);
-  }, []);
+    handleGoHome();
+  }, [handleGoHome]);
 
   const handleNavigate = useCallback((page: string) => {
     setActiveInfoPage(page === 'home' ? null : page);
@@ -367,13 +371,36 @@ const App: React.FC = () => {
     }
 
     if (activeInfoPage) {
+        if (activeInfoPage === 'dashboard') {
+            if (!isAuthenticated) {
+                setActiveInfoPage(null);
+                setIsAuthModalOpen(true);
+                return null;
+            }
+            return <DashboardPage onNavigate={handleNavigate} />;
+        }
         if (activeInfoPage === 'seller-account') {
+            if (!isAuthenticated) {
+                setActiveInfoPage(null);
+                setIsAuthModalOpen(true);
+                return null;
+            }
             return <SellerAccountPage />;
         }
         if (activeInfoPage === 'messages') {
+            if (!isAuthenticated) {
+                setActiveInfoPage(null);
+                setIsAuthModalOpen(true);
+                return null;
+            }
             return <MessagesPage />;
         }
         if (activeInfoPage === 'orders') {
+            if (!isAuthenticated) {
+                setActiveInfoPage(null);
+                setIsAuthModalOpen(true);
+                return null;
+            }
             return <OrdersPage />;
         }
         if (activeInfoPage === 'how-it-works') return <HowItWorksPage />;

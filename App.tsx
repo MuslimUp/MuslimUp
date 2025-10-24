@@ -218,7 +218,7 @@ const App: React.FC = () => {
         }
       });
 
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
         setIsAuthenticated(!!session);
 
         if (session) {
@@ -233,6 +233,13 @@ const App: React.FC = () => {
           }
         } else {
           setIsSeller(false);
+          if (event === 'SIGNED_OUT') {
+            setActiveInfoPage(null);
+            setSelectedServiceId(null);
+            setSelectedFreelancerId(null);
+            setIsCreatingService(false);
+            window.scrollTo(0, 0);
+          }
         }
       });
 

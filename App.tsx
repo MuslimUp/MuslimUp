@@ -16,6 +16,7 @@ import AuthModal from './components/AuthModal';
 import CreateServicePage from './components/CreateServicePage';
 import SellerAccountPage from './components/SellerAccountPage';
 import FloatingChatButton from './components/FloatingChatButton';
+import { supabase } from './lib/supabase';
 
 import { CATEGORIES, FREELANCERS, SERVICES, TESTIMONIALS } from './constants';
 import { Freelancer, Service } from './types';
@@ -166,12 +167,21 @@ const App: React.FC = () => {
   const [services, setServices] = useState<Service[]>(SERVICES);
 
   useEffect(() => {
-    if (localStorage.getItem('isAuthenticated') === 'true') {
-      setIsAuthenticated(true);
-    }
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setIsAuthenticated(true);
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session);
+    });
+
     if (localStorage.getItem('isSeller') === 'true') {
         setIsSeller(true);
     }
+
+    return () => subscription.unsubscribe();
   }, []);
   
   const freelancersMap = useMemo(() => {
@@ -197,10 +207,9 @@ const App: React.FC = () => {
   }, []);
   
   const handleLoginSuccess = useCallback(() => {
-    localStorage.setItem('isAuthenticated', 'true');
     setIsAuthenticated(true);
     setIsAuthModalOpen(false);
-    
+
     if (loginSuccessAction === 'becomeSeller') {
         localStorage.setItem('isSeller', 'true');
         setIsSeller(true);
@@ -209,8 +218,8 @@ const App: React.FC = () => {
     setLoginSuccessAction('default');
   }, [loginSuccessAction, handleGoHome]);
 
-  const handleLogout = useCallback(() => {
-    localStorage.removeItem('isAuthenticated');
+  const handleLogout = useCallback(async () => {
+    await supabase.auth.signOut();
     localStorage.removeItem('isSeller');
     setIsAuthenticated(false);
     setIsSeller(false);

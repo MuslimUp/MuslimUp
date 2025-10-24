@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { GoogleIcon, AppleIcon, FacebookIcon, XMarkIcon, MuslimUpLogoIcon, CheckBadgeIcon } from './icons';
+import { supabase } from '../lib/supabase';
 
 interface AuthModalProps {
   onClose: () => void;
@@ -15,18 +16,61 @@ const Spinner: React.FC = () => (
 
 
 const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLoginSuccess }) => {
-  const [authState, setAuthState] = useState<'initial' | 'loading' | 'success'>('initial');
+  const [authState, setAuthState] = useState<'initial' | 'loading' | 'success' | 'error'>('initial');
   const [authProvider, setAuthProvider] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
 
-  const handleLoginAttempt = (provider: string) => {
-    setAuthProvider(provider);
-    setAuthState('loading');
-    setTimeout(() => {
-      setAuthState('success');
-      setTimeout(() => {
-        onLoginSuccess();
-      }, 1500); // Wait 1.5s on success screen before closing
-    }, 2000); // Simulate 2s network delay
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        setAuthState('success');
+        setTimeout(() => {
+          onLoginSuccess();
+        }, 1500);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [onLoginSuccess]);
+
+  const handleGoogleLogin = async () => {
+    try {
+      setAuthProvider('Google');
+      setAuthState('loading');
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin,
+        }
+      });
+      if (error) throw error;
+    } catch (error: any) {
+      setAuthState('error');
+      setErrorMessage(error.message || 'Erreur lors de la connexion avec Google');
+    }
+  };
+
+  const handleEmailLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password) {
+      setErrorMessage('Veuillez remplir tous les champs');
+      return;
+    }
+
+    try {
+      setAuthProvider('votre e-mail');
+      setAuthState('loading');
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) throw error;
+    } catch (error: any) {
+      setAuthState('error');
+      setErrorMessage(error.message || 'Erreur lors de la connexion');
+    }
   };
 
   const renderContent = () => {
@@ -47,6 +91,70 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLoginSuccess }) => {
                     <p className="text-gray-500">Bienvenue sur MuslimUp. Vous allez être redirigé.</p>
                 </div>
             );
+        case 'error':
+            return (
+                <div className="transition-opacity duration-300">
+                    <div className="text-center">
+                        <MuslimUpLogoIcon className="h-16 w-16 mx-auto" />
+                        <h2 className="mt-4 text-3xl font-bold text-gray-900">Bienvenue !</h2>
+                    </div>
+
+                    {errorMessage && (
+                        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                            <p className="text-sm text-red-600">{errorMessage}</p>
+                        </div>
+                    )}
+
+                    <div className="mt-8 space-y-4">
+                        <SocialButton provider="Google" icon={GoogleIcon} onClick={handleGoogleLogin} />
+                        <SocialButton provider="Facebook" icon={FacebookIcon} onClick={() => {}} disabled />
+                        <SocialButton provider="Apple" icon={AppleIcon} onClick={() => {}} disabled />
+                    </div>
+
+                    <div className="my-6 flex items-center">
+                        <div className="flex-grow border-t border-gray-300"></div>
+                        <span className="flex-shrink mx-4 text-sm text-gray-500">ou</span>
+                        <div className="flex-grow border-t border-gray-300"></div>
+                    </div>
+
+                    <form className="space-y-4" onSubmit={handleEmailLogin}>
+                        <div>
+                            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Adresse email</label>
+                            <input
+                                type="email"
+                                id="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="camille@exemple.com"
+                                className="mt-1 block w-full border border-gray-300 rounded-lg h-12 px-4 text-gray-900 placeholder-gray-400 focus:ring-teal-500 focus:border-teal-500" />
+                        </div>
+                        <div>
+                            <label htmlFor="password" className="block text-sm font-medium text-gray-700">Mot de passe</label>
+                            <input
+                                type="password"
+                                id="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="••••••••"
+                                className="mt-1 block w-full border border-gray-300 rounded-lg h-12 px-4 text-gray-900 placeholder-gray-400 focus:ring-teal-500 focus:border-teal-500" />
+                        </div>
+                        <button
+                            type="submit"
+                            className="w-full h-12 px-8 bg-gray-900 text-white font-semibold rounded-lg hover:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-colors">
+                            Continuer avec mon adresse e-mail
+                        </button>
+                    </form>
+
+                    <button
+                        onClick={() => {
+                            setAuthState('initial');
+                            setErrorMessage('');
+                        }}
+                        className="mt-4 w-full text-center text-sm text-gray-600 hover:text-gray-900">
+                        Réessayer
+                    </button>
+                </div>
+            );
         case 'initial':
         default:
             return (
@@ -56,10 +164,16 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLoginSuccess }) => {
                         <h2 className="mt-4 text-3xl font-bold text-gray-900">Bienvenue !</h2>
                     </div>
 
+                    {errorMessage && (
+                        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                            <p className="text-sm text-red-600">{errorMessage}</p>
+                        </div>
+                    )}
+
                     <div className="mt-8 space-y-4">
-                        <SocialButton provider="Google" icon={GoogleIcon} onClick={() => handleLoginAttempt('Google')} />
-                        <SocialButton provider="Facebook" icon={FacebookIcon} onClick={() => handleLoginAttempt('Facebook')} />
-                        <SocialButton provider="Apple" icon={AppleIcon} onClick={() => handleLoginAttempt('Apple')} />
+                        <SocialButton provider="Google" icon={GoogleIcon} onClick={handleGoogleLogin} />
+                        <SocialButton provider="Facebook" icon={FacebookIcon} onClick={() => {}} disabled />
+                        <SocialButton provider="Apple" icon={AppleIcon} onClick={() => {}} disabled />
                     </div>
 
                     <div className="my-6 flex items-center">
@@ -68,17 +182,29 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLoginSuccess }) => {
                         <div className="flex-grow border-t border-gray-300"></div>
                     </div>
 
-                    <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); handleLoginAttempt('votre e-mail'); }}>
+                    <form className="space-y-4" onSubmit={handleEmailLogin}>
                         <div>
                             <label htmlFor="email" className="block text-sm font-medium text-gray-700">Adresse email</label>
-                            <input 
-                                type="email" 
-                                id="email" 
+                            <input
+                                type="email"
+                                id="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 placeholder="camille@exemple.com"
-                                className="mt-1 block w-full border-gray-300 rounded-lg h-12 px-4 text-gray-900 placeholder-gray-400 focus:ring-teal-500 focus:border-teal-500" />
+                                className="mt-1 block w-full border border-gray-300 rounded-lg h-12 px-4 text-gray-900 placeholder-gray-400 focus:ring-teal-500 focus:border-teal-500" />
                         </div>
-                        <button 
-                            type="submit" 
+                        <div>
+                            <label htmlFor="password" className="block text-sm font-medium text-gray-700">Mot de passe</label>
+                            <input
+                                type="password"
+                                id="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="••••••••"
+                                className="mt-1 block w-full border border-gray-300 rounded-lg h-12 px-4 text-gray-900 placeholder-gray-400 focus:ring-teal-500 focus:border-teal-500" />
+                        </div>
+                        <button
+                            type="submit"
                             className="w-full h-12 px-8 bg-gray-900 text-white font-semibold rounded-lg hover:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-colors">
                             Continuer avec mon adresse e-mail
                         </button>
@@ -108,12 +234,16 @@ interface SocialButtonProps {
     provider: string;
     icon: React.FC<any>;
     onClick: () => void;
+    disabled?: boolean;
 }
 
-const SocialButton: React.FC<SocialButtonProps> = ({ provider, icon: Icon, onClick }) => (
-    <button 
+const SocialButton: React.FC<SocialButtonProps> = ({ provider, icon: Icon, onClick, disabled = false }) => (
+    <button
         onClick={onClick}
-        className="w-full h-12 flex items-center justify-center px-4 bg-white border border-gray-300 rounded-lg text-gray-800 font-medium hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400"
+        disabled={disabled}
+        className={`w-full h-12 flex items-center justify-center px-4 bg-white border border-gray-300 rounded-lg text-gray-800 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 ${
+            disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'
+        }`}
     >
         <Icon className="h-5 w-5 mr-3" />
         Continuer avec {provider}

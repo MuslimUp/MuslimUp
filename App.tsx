@@ -12,6 +12,7 @@ import ValuesPage from './components/ValuesPage';
 import BecomeSellerPage from './components/BecomeSellerPage';
 import FaqPage from './components/FaqPage';
 import TrustAndSafetyPage from './components/TrustAndSafetyPage';
+import HelpCenterPage from './components/HelpCenterPage';
 import AuthModal from './components/AuthModal';
 import CreateServicePage from './components/CreateServicePage';
 import SellerAccountPage from './components/SellerAccountPage';
@@ -438,6 +439,7 @@ const App: React.FC = () => {
         }
         if (activeInfoPage === 'faq') return <FaqPage />;
         if (activeInfoPage === 'trust-and-safety') return <TrustAndSafetyPage />;
+        if (activeInfoPage === 'help-center') return <HelpCenterPage onNavigate={handleNavigate} />;
     }
     
     if (selectedServiceId) {

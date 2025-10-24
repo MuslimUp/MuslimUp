@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Service, Freelancer } from '../types';
 import { StarIcon, ArrowLeftIcon, CheckIcon } from './icons';
 import TestimonialCard from './TestimonialCard';
 import FreelancerProfileCard from './FreelancerProfileCard';
+import OrderModal from './OrderModal';
+import MessageModal from './MessageModal';
 import { TESTIMONIALS } from '../constants';
 
 interface ServiceDetailPageProps {
@@ -13,7 +15,9 @@ interface ServiceDetailPageProps {
 }
 
 const ServiceDetailPage: React.FC<ServiceDetailPageProps> = ({ service, freelancer, onBack, onFreelancerClick }) => {
-  const relatedTestimonial = TESTIMONIALS[0]; // Placeholder for related testimonial logic
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+  const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
+  const relatedTestimonial = TESTIMONIALS[0];
 
   return (
     <div className="pt-24 bg-gray-900">
@@ -105,10 +109,16 @@ const ServiceDetailPage: React.FC<ServiceDetailPageProps> = ({ service, freelanc
                     </ul>
                 </div>
                 <div className="border-t border-white/10 p-6 space-y-4">
-                  <button className="w-full h-12 px-8 bg-teal-500 text-gray-900 font-semibold rounded-lg hover:bg-teal-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-teal-500 transition-colors">
+                  <button
+                    onClick={() => setIsOrderModalOpen(true)}
+                    className="w-full h-12 px-8 bg-teal-500 text-gray-900 font-semibold rounded-lg hover:bg-teal-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-teal-500 transition-colors"
+                  >
                     Commander
                   </button>
-                  <button className="w-full h-12 px-8 bg-white/5 text-white font-semibold rounded-lg border border-white/10 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-gray-500 transition-colors">
+                  <button
+                    onClick={() => setIsMessageModalOpen(true)}
+                    className="w-full h-12 px-8 bg-white/5 text-white font-semibold rounded-lg border border-white/10 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-gray-500 transition-colors"
+                  >
                     Contacter le vendeur
                   </button>
                 </div>
@@ -118,6 +128,24 @@ const ServiceDetailPage: React.FC<ServiceDetailPageProps> = ({ service, freelanc
           </div>
         </div>
       </div>
+      {isOrderModalOpen && (
+        <OrderModal
+          service={service}
+          freelancer={freelancer}
+          onClose={() => setIsOrderModalOpen(false)}
+          onOrderSuccess={() => {
+            setIsOrderModalOpen(false);
+            onBack();
+          }}
+        />
+      )}
+      {isMessageModalOpen && (
+        <MessageModal
+          freelancer={freelancer}
+          onClose={() => setIsMessageModalOpen(false)}
+          onMessageSuccess={() => setIsMessageModalOpen(false)}
+        />
+      )}
     </div>
   );
 };

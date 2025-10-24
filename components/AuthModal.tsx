@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { GoogleIcon, AppleIcon, FacebookIcon, XMarkIcon, MuslimUpLogoIcon, CheckBadgeIcon } from './icons';
+import { XMarkIcon, MuslimUpLogoIcon, CheckBadgeIcon } from './icons';
+import { supabase } from '../lib/supabase';
 
 interface AuthModalProps {
   onClose: () => void;
@@ -16,17 +17,54 @@ const Spinner: React.FC = () => (
 
 const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLoginSuccess }) => {
   const [authState, setAuthState] = useState<'initial' | 'loading' | 'success'>('initial');
-  const [authProvider, setAuthProvider] = useState<string | null>(null);
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [error, setError] = useState('');
 
-  const handleLoginAttempt = (provider: string) => {
-    setAuthProvider(provider);
+  const handleAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
     setAuthState('loading');
-    setTimeout(() => {
+
+    try {
+      if (isSignUp) {
+        const { data: authData, error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+        });
+
+        if (signUpError) throw signUpError;
+
+        if (authData.user) {
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .insert({
+              id: authData.user.id,
+              full_name: fullName,
+              avatar_url: `https://picsum.photos/seed/${authData.user.id}/128/128`,
+            });
+
+          if (profileError) throw profileError;
+        }
+      } else {
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (signInError) throw signInError;
+      }
+
       setAuthState('success');
       setTimeout(() => {
         onLoginSuccess();
-      }, 1500); // Wait 1.5s on success screen before closing
-    }, 2000); // Simulate 2s network delay
+      }, 1500);
+    } catch (err: any) {
+      setError(err.message || 'Une erreur est survenue');
+      setAuthState('initial');
+    }
   };
 
   const renderContent = () => {
@@ -35,7 +73,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLoginSuccess }) => {
             return (
                 <div className="text-center py-16 transition-opacity duration-300">
                     <Spinner />
-                    <h3 className="mt-4 text-xl font-semibold text-gray-800">Connexion avec {authProvider}...</h3>
+                    <h3 className="mt-4 text-xl font-semibold text-gray-800">Connexion en cours...</h3>
                     <p className="text-gray-500">Veuillez patienter.</p>
                 </div>
             );
@@ -53,34 +91,66 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLoginSuccess }) => {
                 <div className="transition-opacity duration-300">
                     <div className="text-center">
                         <MuslimUpLogoIcon className="h-16 w-16 mx-auto" />
-                        <h2 className="mt-4 text-3xl font-bold text-gray-900">Bienvenue !</h2>
+                        <h2 className="mt-4 text-3xl font-bold text-gray-900">{isSignUp ? 'Créer un compte' : 'Connexion'}</h2>
+                        <p className="mt-2 text-sm text-gray-600">
+                            {isSignUp ? 'Déjà inscrit ?' : 'Pas encore de compte ?'}
+                            <button
+                                type="button"
+                                onClick={() => { setIsSignUp(!isSignUp); setError(''); }}
+                                className="ml-1 text-teal-600 hover:text-teal-700 font-semibold"
+                            >
+                                {isSignUp ? 'Se connecter' : 'Créer un compte'}
+                            </button>
+                        </p>
                     </div>
 
-                    <div className="mt-8 space-y-4">
-                        <SocialButton provider="Google" icon={GoogleIcon} onClick={() => handleLoginAttempt('Google')} />
-                        <SocialButton provider="Facebook" icon={FacebookIcon} onClick={() => handleLoginAttempt('Facebook')} />
-                        <SocialButton provider="Apple" icon={AppleIcon} onClick={() => handleLoginAttempt('Apple')} />
-                    </div>
+                    {error && (
+                        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                            {error}
+                        </div>
+                    )}
 
-                    <div className="my-6 flex items-center">
-                        <div className="flex-grow border-t border-gray-300"></div>
-                        <span className="flex-shrink mx-4 text-sm text-gray-500">ou</span>
-                        <div className="flex-grow border-t border-gray-300"></div>
-                    </div>
-
-                    <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); handleLoginAttempt('votre e-mail'); }}>
+                    <form className="mt-6 space-y-4" onSubmit={handleAuth}>
+                        {isSignUp && (
+                            <div>
+                                <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">Nom complet</label>
+                                <input
+                                    type="text"
+                                    id="fullName"
+                                    value={fullName}
+                                    onChange={(e) => setFullName(e.target.value)}
+                                    placeholder="Votre nom"
+                                    required
+                                    className="mt-1 block w-full border border-gray-300 rounded-lg h-12 px-4 text-gray-900 placeholder-gray-400 focus:ring-teal-500 focus:border-teal-500" />
+                            </div>
+                        )}
                         <div>
                             <label htmlFor="email" className="block text-sm font-medium text-gray-700">Adresse email</label>
-                            <input 
-                                type="email" 
-                                id="email" 
+                            <input
+                                type="email"
+                                id="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 placeholder="camille@exemple.com"
-                                className="mt-1 block w-full border-gray-300 rounded-lg h-12 px-4 text-gray-900 placeholder-gray-400 focus:ring-teal-500 focus:border-teal-500" />
+                                required
+                                className="mt-1 block w-full border border-gray-300 rounded-lg h-12 px-4 text-gray-900 placeholder-gray-400 focus:ring-teal-500 focus:border-teal-500" />
                         </div>
-                        <button 
-                            type="submit" 
+                        <div>
+                            <label htmlFor="password" className="block text-sm font-medium text-gray-700">Mot de passe</label>
+                            <input
+                                type="password"
+                                id="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="••••••••"
+                                required
+                                minLength={6}
+                                className="mt-1 block w-full border border-gray-300 rounded-lg h-12 px-4 text-gray-900 placeholder-gray-400 focus:ring-teal-500 focus:border-teal-500" />
+                        </div>
+                        <button
+                            type="submit"
                             className="w-full h-12 px-8 bg-gray-900 text-white font-semibold rounded-lg hover:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-colors">
-                            Continuer avec mon adresse e-mail
+                            {isSignUp ? 'Créer mon compte' : 'Se connecter'}
                         </button>
                     </form>
                 </div>
@@ -103,21 +173,5 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLoginSuccess }) => {
     </div>
   );
 };
-
-interface SocialButtonProps {
-    provider: string;
-    icon: React.FC<any>;
-    onClick: () => void;
-}
-
-const SocialButton: React.FC<SocialButtonProps> = ({ provider, icon: Icon, onClick }) => (
-    <button 
-        onClick={onClick}
-        className="w-full h-12 flex items-center justify-center px-4 bg-white border border-gray-300 rounded-lg text-gray-800 font-medium hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400"
-    >
-        <Icon className="h-5 w-5 mr-3" />
-        Continuer avec {provider}
-    </button>
-);
 
 export default AuthModal;

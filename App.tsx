@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { supabase } from './lib/supabase';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import SearchBar from './components/SearchBar';
@@ -162,23 +163,120 @@ const App: React.FC = () => {
   const [isSeller, setIsSeller] = useState(false);
   const [loginSuccessAction, setLoginSuccessAction] = useState<'default' | 'becomeSeller'>('default');
   const [isCreatingService, setIsCreatingService] = useState(false);
-  const [services, setServices] = useState<Service[]>(SERVICES);
+  const [services, setServices] = useState<Service[]>([]);
+  const [loadingServices, setLoadingServices] = useState(true);
 
   useEffect(() => {
-    if (localStorage.getItem('isAuthenticated') === 'true') {
-      setIsAuthenticated(true);
-    }
-    if (localStorage.getItem('isSeller') === 'true') {
-        setIsSeller(true);
-    }
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setIsAuthenticated(true);
+        supabase
+          .from('profiles')
+          .select('is_seller')
+          .eq('id', session.user.id)
+          .maybeSingle()
+          .then(({ data }) => {
+            if (data?.is_seller) {
+              setIsSeller(true);
+            }
+          });
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        setIsAuthenticated(true);
+      } else {
+        setIsAuthenticated(false);
+        setIsSeller(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      const { data, error } = await supabase
+        .from('services')
+        .select(`
+          *,
+          profiles!services_seller_id_fkey (
+            id,
+            full_name,
+            avatar_url,
+            seller_level,
+            response_time_hours,
+            orders_completed,
+            on_time_delivery_rate,
+            member_since
+          )
+        `)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      if (data) {
+        const transformedServices: Service[] = data.map((item: any) => ({
+          id: item.id,
+          freelancerId: item.seller_id,
+          categoryId: item.category_id,
+          title: item.title,
+          description: item.description,
+          imageUrl: item.image_url,
+          price: parseFloat(item.price),
+          features: item.features || [],
+          rating: 0,
+          reviewCount: 0,
+          ordersInQueue: item.orders_in_queue || 0,
+        }));
+        setServices(transformedServices);
+      }
+      setLoadingServices(false);
+    };
+
+    fetchServices();
   }, []);
   
+  const [profiles, setProfiles] = useState<Freelancer[]>([]);
+
+  useEffect(() => {
+    const fetchProfiles = async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('is_seller', true);
+
+      if (data) {
+        const transformedProfiles: Freelancer[] = data.map((profile: any) => ({
+          id: profile.id,
+          name: profile.full_name,
+          title: 'Freelance',
+          avatarUrl: profile.avatar_url,
+          level: profile.seller_level === 'top' ? 'Top Vendeur' : profile.seller_level === 'level2' ? 'Vendeur de Niveau 2' : profile.seller_level === 'level1' ? 'Vendeur de Niveau 1' : 'Nouveau vendeur',
+          description: profile.bio || '',
+          rating: 4.8,
+          reviewCount: 0,
+          stats: {
+            responseTime: profile.response_time_hours || 24,
+            ordersCompleted: profile.orders_completed || 0,
+            onTimeDeliveryRate: profile.on_time_delivery_rate || 100,
+          },
+          memberSince: new Date(profile.member_since).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }),
+        }));
+        setProfiles(transformedProfiles);
+      }
+    };
+
+    fetchProfiles();
+  }, []);
+
   const freelancersMap = useMemo(() => {
-    return FREELANCERS.reduce((acc, freelancer) => {
+    const allFreelancers = [...FREELANCERS, ...profiles];
+    return allFreelancers.reduce((acc, freelancer) => {
       acc[freelancer.id] = freelancer;
       return acc;
     }, {} as Record<string, Freelancer>);
-  }, []);
+  }, [profiles]);
 
   const servicesMap = useMemo(() => {
     return services.reduce((acc, service) => {
@@ -195,22 +293,26 @@ const App: React.FC = () => {
       window.scrollTo(0, 0);
   }, []);
   
-  const handleLoginSuccess = useCallback(() => {
-    localStorage.setItem('isAuthenticated', 'true');
+  const handleLoginSuccess = useCallback(async () => {
     setIsAuthenticated(true);
     setIsAuthModalOpen(false);
-    
+
     if (loginSuccessAction === 'becomeSeller') {
-        localStorage.setItem('isSeller', 'true');
-        setIsSeller(true);
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          await supabase
+            .from('profiles')
+            .update({ is_seller: true })
+            .eq('id', session.user.id);
+          setIsSeller(true);
+        }
         handleGoHome();
     }
     setLoginSuccessAction('default');
   }, [loginSuccessAction, handleGoHome]);
 
-  const handleLogout = useCallback(() => {
-    localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('isSeller');
+  const handleLogout = useCallback(async () => {
+    await supabase.auth.signOut();
     setIsAuthenticated(false);
     setIsSeller(false);
   }, []);
@@ -228,9 +330,15 @@ const App: React.FC = () => {
     setIsAuthModalOpen(true);
   }, []);
   
-  const handleBecomeSeller = useCallback(() => {
-      localStorage.setItem('isSeller', 'true');
-      setIsSeller(true);
+  const handleBecomeSeller = useCallback(async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        await supabase
+          .from('profiles')
+          .update({ is_seller: true })
+          .eq('id', session.user.id);
+        setIsSeller(true);
+      }
       handleGoHome();
   }, [handleGoHome]);
 
@@ -247,20 +355,45 @@ const App: React.FC = () => {
     window.scrollTo(0, 0);
   }, []);
 
-  const handleServiceCreate = useCallback((newServiceData: Omit<Service, 'id' | 'freelancerId' | 'rating' | 'reviewCount' | 'ordersInQueue'>) => {
-    const freelancerId = FREELANCERS[0].id; 
-    const newService: Service = {
-        ...newServiceData,
-        id: `s${services.length + 1 + Math.random()}`,
-        freelancerId: freelancerId,
+  const handleServiceCreate = useCallback(async (newServiceData: Omit<Service, 'id' | 'freelancerId' | 'rating' | 'reviewCount' | 'ordersInQueue'>) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const { data, error } = await supabase
+      .from('services')
+      .insert({
+        seller_id: session.user.id,
+        category_id: newServiceData.categoryId,
+        title: newServiceData.title,
+        description: newServiceData.description,
+        image_url: newServiceData.imageUrl,
+        price: newServiceData.price,
+        features: newServiceData.features,
+        is_active: true,
+      })
+      .select()
+      .single();
+
+    if (data) {
+      const newService: Service = {
+        id: data.id,
+        freelancerId: data.seller_id,
+        categoryId: data.category_id,
+        title: data.title,
+        description: data.description,
+        imageUrl: data.image_url,
+        price: parseFloat(data.price),
+        features: data.features || [],
         rating: 0,
         reviewCount: 0,
         ordersInQueue: 0,
-    };
-    setServices(prevServices => [newService, ...prevServices]);
+      };
+      setServices(prevServices => [newService, ...prevServices]);
+    }
+
     setIsCreatingService(false);
     handleGoHome();
-  }, [services.length, handleGoHome]);
+  }, [handleGoHome]);
 
   const handleServiceClick = useCallback((serviceId: string) => {
     setSelectedServiceId(serviceId);

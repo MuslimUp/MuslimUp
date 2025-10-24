@@ -16,7 +16,7 @@ const Spinner: React.FC = () => (
 
 
 const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLoginSuccess }) => {
-  const [authState, setAuthState] = useState<'initial' | 'loading' | 'success' | 'error'>('initial');
+  const [authState, setAuthState] = useState<'initial' | 'loading' | 'success' | 'error' | 'confirmEmail'>('initial');
   const [authProvider, setAuthProvider] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [email, setEmail] = useState<string>('');
@@ -79,14 +79,23 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLoginSuccess }) => {
       setAuthState('loading');
 
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             emailRedirectTo: window.location.origin,
+            data: {
+              full_name: email.split('@')[0],
+            }
           }
         });
         if (error) throw error;
+
+        if (data?.user && !data.session) {
+          setAuthState('confirmEmail');
+          setErrorMessage('');
+          return;
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
@@ -100,6 +109,25 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLoginSuccess }) => {
     }
   };
 
+  const handleResendConfirmation = async () => {
+    if (!supabase || !email) return;
+
+    try {
+      setAuthState('loading');
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+      });
+      if (error) throw error;
+
+      setAuthState('confirmEmail');
+      alert('Email de confirmation renvoyé ! Vérifiez votre boîte de réception.');
+    } catch (error: any) {
+      setAuthState('error');
+      setErrorMessage(error.message || 'Erreur lors du renvoi de l\'email');
+    }
+  };
+
   const renderContent = () => {
     switch (authState) {
         case 'loading':
@@ -108,6 +136,36 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLoginSuccess }) => {
                     <Spinner />
                     <h3 className="mt-4 text-xl font-semibold text-gray-800">Connexion avec {authProvider}...</h3>
                     <p className="text-gray-500">Veuillez patienter.</p>
+                </div>
+            );
+        case 'confirmEmail':
+            return (
+                <div className="text-center py-16 transition-opacity duration-300">
+                    <div className="mb-6">
+                        <svg className="h-20 w-20 text-teal-500 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-2">Vérifiez votre email</h3>
+                    <p className="text-gray-600 mb-6">
+                        Nous avons envoyé un lien de confirmation à<br />
+                        <span className="font-semibold">{email}</span>
+                    </p>
+                    <p className="text-sm text-gray-500 mb-8">
+                        Cliquez sur le lien dans l'email pour activer votre compte.
+                    </p>
+                    <button
+                        onClick={handleResendConfirmation}
+                        className="w-full h-12 px-8 bg-gray-900 text-white font-semibold rounded-lg hover:bg-black transition-colors mb-3"
+                    >
+                        Renvoyer l'email de confirmation
+                    </button>
+                    <button
+                        onClick={onClose}
+                        className="w-full text-center text-sm text-gray-600 hover:text-gray-900"
+                    >
+                        Fermer
+                    </button>
                 </div>
             );
         case 'success':

@@ -19,6 +19,7 @@ import FloatingChatButton from './components/FloatingChatButton';
 import MessagesPage from './components/MessagesPage';
 import OrdersPage from './components/OrdersPage';
 import DashboardPage from './components/DashboardPage';
+import { ProfilePage } from './components/ProfilePage';
 import { supabase } from './lib/supabase';
 import { useServices } from './hooks/useServices';
 import { useProfiles } from './hooks/useProfiles';
@@ -409,6 +410,14 @@ const App: React.FC = () => {
                 return null;
             }
             return <OrdersPage />;
+        }
+        if (activeInfoPage === 'profile') {
+            if (!isAuthenticated) {
+                setActiveInfoPage(null);
+                setIsAuthModalOpen(true);
+                return null;
+            }
+            return <ProfilePage onBack={handleGoHome} />;
         }
         if (activeInfoPage === 'how-it-works') return <HowItWorksPage />;
         if (activeInfoPage === 'values') return <ValuesPage />;

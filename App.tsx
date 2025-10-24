@@ -26,33 +26,20 @@ const HomePage: React.FC<{
   freelancersMap: Record<string, Freelancer>;
   onNavigate: (page: string) => void;
   services: Service[];
-  onCategoryFilter: (categoryId: string) => void;
-}> = ({ onServiceClick, freelancersMap, onNavigate, services, onCategoryFilter }) => {
+}> = ({ onServiceClick, freelancersMap, onNavigate, services }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredServices, setFilteredServices] = useState(services);
 
   const handleSearch = (query?: string) => {
     const searchTerm = typeof query === 'string' ? query : searchQuery;
-    if (!searchTerm.trim()) {
-      setFilteredServices(services);
-      return;
-    }
-
-    const filtered = services.filter(service =>
-      service.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      service.description.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredServices(filtered);
+    if (!searchTerm.trim()) return;
+    console.log('Searching for:', searchTerm);
+    // Search logic would go here
   };
-
+  
   const handleSuggestionClick = (suggestion: string) => {
     setSearchQuery(suggestion);
     handleSearch(suggestion);
   };
-
-  React.useEffect(() => {
-    setFilteredServices(services);
-  }, [services]);
 
   return (
     <main>
@@ -89,14 +76,10 @@ const HomePage: React.FC<{
           <h2 className="text-4xl font-bold text-center text-white mb-12">Découvrez nos catégories</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
             {CATEGORIES.map(category => (
-              <button
-                key={category.id}
-                onClick={() => onCategoryFilter(category.id)}
-                className="group flex flex-col items-center p-6 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-all cursor-pointer"
-              >
+              <div key={category.id} className="group flex flex-col items-center p-6 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-all cursor-pointer">
                 <category.icon className="h-12 w-12 text-teal-400 mb-4 transition-transform group-hover:scale-110" />
                 <h3 className="text-lg font-semibold text-white text-center">{category.name}</h3>
-              </button>
+              </div>
             ))}
           </div>
         </div>
@@ -107,20 +90,14 @@ const HomePage: React.FC<{
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl font-bold text-center text-white mb-12">Services populaires</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {filteredServices.length > 0 ? (
-              filteredServices.slice(0, 10).map(service => (
-                <ServiceCard
-                  key={service.id}
-                  service={service}
-                  freelancer={freelancersMap[service.freelancerId]}
-                  onClick={() => onServiceClick(service.id)}
-                />
-              ))
-            ) : (
-              <div className="col-span-full text-center py-12">
-                <p className="text-gray-400 text-lg">Aucun service trouvé pour votre recherche.</p>
-              </div>
-            )}
+            {services.slice(0, 10).map(service => (
+              <ServiceCard
+                key={service.id}
+                service={service}
+                freelancer={freelancersMap[service.freelancerId]}
+                onClick={() => onServiceClick(service.id)}
+              />
+            ))}
           </div>
         </div>
       </section>
@@ -188,7 +165,6 @@ const App: React.FC = () => {
   const [isCreatingService, setIsCreatingService] = useState(false);
   const [services, setServices] = useState<Service[]>([]);
   const [loadingServices, setLoadingServices] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -433,11 +409,6 @@ const App: React.FC = () => {
     window.scrollTo(0, 0);
   }, []);
   
-  const handleCategoryFilter = useCallback((categoryId: string) => {
-    setSelectedCategory(categoryId);
-    window.scrollTo({ top: document.getElementById('services-section')?.offsetTop, behavior: 'smooth' });
-  }, []);
-
   const handleBack = useCallback(() => {
     if (selectedFreelancerId) {
         setSelectedFreelancerId(null);
@@ -449,11 +420,6 @@ const App: React.FC = () => {
         handleGoHome();
     }
   }, [selectedFreelancerId, selectedServiceId, handleGoHome]);
-
-  const displayedServices = useMemo(() => {
-    if (!selectedCategory) return services;
-    return services.filter(service => service.categoryId === selectedCategory);
-  }, [services, selectedCategory]);
 
   const renderPage = () => {
     if (isCreatingService) {
@@ -486,7 +452,7 @@ const App: React.FC = () => {
         return <FreelancerDetailPage freelancer={freelancer} services={freelancerServices} freelancersMap={freelancersMap} onBack={handleBack} onServiceClick={handleServiceClick} />;
     }
     
-    return <HomePage onServiceClick={handleServiceClick} freelancersMap={freelancersMap} onNavigate={handleNavigate} services={displayedServices} onCategoryFilter={handleCategoryFilter} />;
+    return <HomePage onServiceClick={handleServiceClick} freelancersMap={freelancersMap} onNavigate={handleNavigate} services={services} />;
   };
 
   return (
@@ -500,7 +466,7 @@ const App: React.FC = () => {
         onCreateServiceClick={handleCreateServiceClick}
       />
       {renderPage()}
-      <Footer onCategoryClick={handleCategoryFilter} onNavigate={handleNavigate} />
+      <Footer onCategoryClick={() => {}} onNavigate={handleNavigate} />
       {isAuthModalOpen && <AuthModal onClose={() => setIsAuthModalOpen(false)} onLoginSuccess={handleLoginSuccess} />}
       <FloatingChatButton />
     </div>

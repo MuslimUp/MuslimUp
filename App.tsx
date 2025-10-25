@@ -4,7 +4,7 @@ import Footer from './components/Footer';
 import SearchBar from './components/SearchBar';
 import ServiceCard from './components/ServiceCard';
 import TestimonialCard from './components/TestimonialCard';
-import ServiceDetailPageNew from './components/ServiceDetailPageNew';
+import ServiceDetailPage from './components/ServiceDetailPage';
 import FreelancerDetailPage from './components/FreelancerDetailPage';
 import HowItWorksPage from './components/HowItWorksPage';
 import ValuesPage from './components/ValuesPage';
@@ -13,15 +13,13 @@ import FaqPage from './components/FaqPage';
 import TrustAndSafetyPage from './components/TrustAndSafetyPage';
 import HelpCenterPage from './components/HelpCenterPage';
 import AuthModal from './components/AuthModal';
-import CreateServicePageNew from './components/CreateServicePageNew';
-import SellerDashboardPage from './components/SellerDashboardPage';
+import CreateServicePage from './components/CreateServicePage';
+import SellerAccountPage from './components/SellerAccountPage';
 import FloatingChatButton from './components/FloatingChatButton';
-import OrdersPageNew from './components/OrdersPageNew';
-import OrderDetailPage from './components/OrderDetailPage';
-import OrderCreationPage from './components/OrderCreationPage';
-import AdvancedSearchPage from './components/AdvancedSearchPage';
+import MessagesPage from './components/MessagesPage';
+import OrdersPage from './components/OrdersPage';
+import DashboardPage from './components/DashboardPage';
 import { ProfilePage } from './components/ProfilePage';
-import ReviewSubmissionModal from './components/ReviewSubmissionModal';
 import { supabase } from './lib/supabase';
 import { useServices } from './hooks/useServices';
 import { useProfiles } from './hooks/useProfiles';
@@ -29,6 +27,7 @@ import { useProfiles } from './hooks/useProfiles';
 import { CATEGORIES, FREELANCERS, SERVICES, TESTIMONIALS } from './constants';
 import { Freelancer, Service } from './types';
 
+// Home Page Component
 const HomePage: React.FC<{
   onServiceClick: (id: string) => void;
   freelancersMap: Record<string, Freelancer>;
@@ -41,7 +40,7 @@ const HomePage: React.FC<{
     ? services.filter(service =>
         service.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         service.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (service.category && service.category.toLowerCase().includes(searchQuery.toLowerCase()))
+        service.category.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : services;
 
@@ -51,7 +50,7 @@ const HomePage: React.FC<{
       setSearchQuery(searchTerm);
     }
   };
-
+  
   const handleSuggestionClick = (suggestion: string) => {
     setSearchQuery(suggestion);
     handleSearch(suggestion);
@@ -59,6 +58,7 @@ const HomePage: React.FC<{
 
   return (
     <main>
+      {/* Hero Section */}
       <section className="relative pt-48 pb-32 text-center bg-gray-900 overflow-hidden">
         <div className="absolute inset-0 z-0">
             <div className="absolute top-0 left-0 w-full h-full bg-gray-900"></div>
@@ -78,31 +78,29 @@ const HomePage: React.FC<{
             <div className="mt-5 flex items-center justify-center flex-wrap gap-x-8 gap-y-2 text-lg text-white">
               <button onClick={() => handleSuggestionClick('logo')} className="hover:text-teal-300 transition-colors">logo</button>
               <button onClick={() => handleSuggestionClick('site web')} className="hover:text-teal-300 transition-colors">site web</button>
-              <button onClick={() => handleSuggestionClick('design')} className="hover:text-teal-300 transition-colors">design</button>
+              <button onClick={() => handleSuggestionClick('find clients')} className="hover:text-teal-300 transition-colors">find clients</button>
               <button onClick={() => handleSuggestionClick('montage vidéo')} className="hover:text-teal-300 transition-colors">montage vidéo</button>
             </div>
           </div>
         </div>
       </section>
 
+      {/* Categories Section */}
       <section className="py-20 bg-gray-900">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl font-bold text-center text-white mb-12">Découvrez nos catégories</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
             {CATEGORIES.map(category => (
-              <button
-                key={category.id}
-                onClick={() => onNavigate('search')}
-                className="group flex flex-col items-center p-6 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-all cursor-pointer"
-              >
+              <div key={category.id} className="group flex flex-col items-center p-6 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-all cursor-pointer">
                 <category.icon className="h-12 w-12 text-teal-400 mb-4 transition-transform group-hover:scale-110" />
                 <h3 className="text-lg font-semibold text-white text-center">{category.name}</h3>
-              </button>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
+      {/* Featured Services Section */}
       <section className="py-20 bg-gray-950">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl font-bold text-center text-white mb-12">
@@ -118,7 +116,7 @@ const HomePage: React.FC<{
                 <ServiceCard
                   key={service.id}
                   service={service}
-                  freelancer={freelancersMap[service.freelancerId] || freelancersMap[service.sellerId || '']}
+                  freelancer={freelancersMap[service.freelancerId]}
                   onClick={() => onServiceClick(service.id)}
                 />
               ))}
@@ -126,7 +124,8 @@ const HomePage: React.FC<{
           )}
         </div>
       </section>
-
+      
+      {/* Testimonials Section */}
       <section className="py-20 bg-gray-900">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-4xl font-bold text-center text-white mb-12">Ce que notre communauté en pense</h2>
@@ -138,6 +137,7 @@ const HomePage: React.FC<{
         </div>
       </section>
 
+      {/* CTA Section */}
       <section className="relative bg-teal-500 overflow-hidden">
         <div aria-hidden="true" className="absolute inset-0">
             <div className="absolute inset-0 max-w-7xl mx-auto overflow-hidden xl:px-8">
@@ -176,21 +176,19 @@ const HomePage: React.FC<{
   );
 };
 
+
 const App: React.FC = () => {
-  const { services: dbServices, loading: servicesLoading } = useServices();
+  const { services: dbServices, loading: servicesLoading, createService } = useServices();
   const { profiles: dbProfiles, loading: profilesLoading, becomeSeller: becomeSellerDB } = useProfiles();
 
   const [activeInfoPage, setActiveInfoPage] = useState<string | null>(null);
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
   const [selectedFreelancerId, setSelectedFreelancerId] = useState<string | null>(null);
-  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
-  const [orderCreation, setOrderCreation] = useState<{ serviceId: string; packageId: string } | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isSeller, setIsSeller] = useState(false);
   const [loginSuccessAction, setLoginSuccessAction] = useState<'default' | 'becomeSeller'>('default');
   const [isCreatingService, setIsCreatingService] = useState(false);
-  const [reviewModal, setReviewModal] = useState<{ orderId: string; serviceId: string; sellerId: string } | null>(null);
 
   const services = dbServices.length > 0 ? dbServices : SERVICES;
   const freelancersMap = useMemo(() => {
@@ -237,7 +235,11 @@ const App: React.FC = () => {
         } else {
           setIsSeller(false);
           if (event === 'SIGNED_OUT') {
-            handleGoHome();
+            setActiveInfoPage(null);
+            setSelectedServiceId(null);
+            setSelectedFreelancerId(null);
+            setIsCreatingService(false);
+            window.scrollTo(0, 0);
           }
         }
       });
@@ -264,8 +266,6 @@ const App: React.FC = () => {
       setActiveInfoPage(null);
       setSelectedServiceId(null);
       setSelectedFreelancerId(null);
-      setSelectedOrderId(null);
-      setOrderCreation(null);
       setIsCreatingService(false);
       window.scrollTo(0, 0);
   }, []);
@@ -274,8 +274,6 @@ const App: React.FC = () => {
     setActiveInfoPage(page === 'home' ? null : page);
     setSelectedServiceId(null);
     setSelectedFreelancerId(null);
-    setSelectedOrderId(null);
-    setOrderCreation(null);
     setIsCreatingService(false);
     window.scrollTo(0, 0);
   }, []);
@@ -305,12 +303,12 @@ const App: React.FC = () => {
     setIsSeller(false);
     handleGoHome();
   }, [handleGoHome]);
-
+  
   const handleAuthClick = useCallback(() => {
     setLoginSuccessAction('default');
     setIsAuthModalOpen(true);
   }, []);
-
+  
   const handleBecomeSeller = useCallback(async () => {
       try {
         await becomeSellerDB();
@@ -331,29 +329,28 @@ const App: React.FC = () => {
   }, []);
 
   const handleCreateServiceClick = useCallback(() => {
-    if (!isAuthenticated) {
-      setIsAuthModalOpen(true);
-      return;
-    }
-    if (!isSeller) {
-      handleNavigate('become-seller');
-      return;
-    }
     setIsCreatingService(true);
     setActiveInfoPage(null);
     setSelectedServiceId(null);
     setSelectedFreelancerId(null);
-    setSelectedOrderId(null);
-    setOrderCreation(null);
     window.scrollTo(0, 0);
-  }, [isAuthenticated, isSeller, handleNavigate]);
+  }, []);
+
+  const handleServiceCreate = useCallback(async (newServiceData: Omit<Service, 'id' | 'freelancerId' | 'rating' | 'reviewCount' | 'ordersInQueue'>) => {
+    try {
+      await createService(newServiceData);
+      setIsCreatingService(false);
+      handleGoHome();
+    } catch (error: any) {
+      console.error('Erreur lors de la création du service:', error);
+      alert(error.message || 'Erreur lors de la création du service');
+    }
+  }, [createService, handleGoHome]);
 
   const handleServiceClick = useCallback((serviceId: string) => {
     setSelectedServiceId(serviceId);
     setActiveInfoPage(null);
     setIsCreatingService(false);
-    setSelectedOrderId(null);
-    setOrderCreation(null);
     window.scrollTo(0, 0);
   }, []);
 
@@ -361,41 +358,11 @@ const App: React.FC = () => {
     setSelectedFreelancerId(freelancerId);
     setSelectedServiceId(null);
     setIsCreatingService(false);
-    setSelectedOrderId(null);
-    setOrderCreation(null);
     window.scrollTo(0, 0);
   }, []);
-
-  const handleOrderClick = useCallback((serviceId: string, packageId: string) => {
-    if (!isAuthenticated) {
-      setIsAuthModalOpen(true);
-      return;
-    }
-    setOrderCreation({ serviceId, packageId });
-    setSelectedServiceId(null);
-    window.scrollTo(0, 0);
-  }, [isAuthenticated]);
-
-  const handleOrderSuccess = useCallback((orderId: string) => {
-    setOrderCreation(null);
-    setSelectedOrderId(orderId);
-    window.scrollTo(0, 0);
-  }, []);
-
-  const handleViewOrder = useCallback((orderId: string) => {
-    setSelectedOrderId(orderId);
-    setActiveInfoPage(null);
-    window.scrollTo(0, 0);
-  }, []);
-
+  
   const handleBack = useCallback(() => {
-    if (selectedOrderId) {
-      setSelectedOrderId(null);
-      handleNavigate('orders');
-    } else if (orderCreation) {
-      setOrderCreation(null);
-      handleServiceClick(orderCreation.serviceId);
-    } else if (selectedFreelancerId) {
+    if (selectedFreelancerId) {
         setSelectedFreelancerId(null);
         handleGoHome();
     } else if (selectedServiceId) {
@@ -404,31 +371,11 @@ const App: React.FC = () => {
     } else {
         handleGoHome();
     }
-  }, [selectedFreelancerId, selectedServiceId, selectedOrderId, orderCreation, handleGoHome, handleNavigate, handleServiceClick]);
+  }, [selectedFreelancerId, selectedServiceId, handleGoHome]);
 
   const renderPage = () => {
-    if (orderCreation) {
-      const service = servicesMap[orderCreation.serviceId];
-      if (!service) {
-        handleGoHome();
-        return null;
-      }
-      return (
-        <OrderCreationPage
-          service={service}
-          packageId={orderCreation.packageId}
-          onBack={handleBack}
-          onSuccess={handleOrderSuccess}
-        />
-      );
-    }
-
-    if (selectedOrderId) {
-      return <OrderDetailPage orderId={selectedOrderId} onBack={handleBack} />;
-    }
-
     if (isCreatingService) {
-      return <CreateServicePageNew categories={CATEGORIES} onBack={handleGoHome} onSuccess={handleGoHome} />;
+      return <CreateServicePage categories={CATEGORIES} onServiceCreate={handleServiceCreate} onBack={handleGoHome} />;
     }
 
     if (activeInfoPage) {
@@ -438,21 +385,15 @@ const App: React.FC = () => {
                 setIsAuthModalOpen(true);
                 return null;
             }
-            return (
-              <SellerDashboardPage
-                onCreateService={handleCreateServiceClick}
-                onEditService={(serviceId) => console.log('Edit service:', serviceId)}
-                onViewOrders={() => handleNavigate('orders')}
-              />
-            );
+            return <DashboardPage onNavigate={handleNavigate} />;
         }
-        if (activeInfoPage === 'orders') {
+        if (activeInfoPage === 'seller-account') {
             if (!isAuthenticated) {
                 setActiveInfoPage(null);
                 setIsAuthModalOpen(true);
                 return null;
             }
-            return <OrdersPageNew onOrderClick={handleViewOrder} />;
+            return <SellerAccountPage />;
         }
         if (activeInfoPage === 'messages') {
             if (!isAuthenticated) {
@@ -460,16 +401,15 @@ const App: React.FC = () => {
                 setIsAuthModalOpen(true);
                 return null;
             }
-            return (
-              <div className="min-h-screen bg-gray-900 pt-24 pb-12">
-                <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                  <h1 className="text-4xl font-bold text-white mb-8">Messages</h1>
-                  <div className="bg-white/5 rounded-xl p-12 border border-white/10 text-center">
-                    <p className="text-gray-400 text-lg">Messagerie en cours de développement</p>
-                  </div>
-                </div>
-              </div>
-            );
+            return <MessagesPage />;
+        }
+        if (activeInfoPage === 'orders') {
+            if (!isAuthenticated) {
+                setActiveInfoPage(null);
+                setIsAuthModalOpen(true);
+                return null;
+            }
+            return <OrdersPage />;
         }
         if (activeInfoPage === 'profile') {
             if (!isAuthenticated) {
@@ -478,9 +418,6 @@ const App: React.FC = () => {
                 return null;
             }
             return <ProfilePage onBack={handleGoHome} />;
-        }
-        if (activeInfoPage === 'search') {
-            return <AdvancedSearchPage categories={CATEGORIES} onServiceClick={handleServiceClick} />;
         }
         if (activeInfoPage === 'how-it-works') return <HowItWorksPage />;
         if (activeInfoPage === 'values') return <ValuesPage />;
@@ -492,59 +429,35 @@ const App: React.FC = () => {
         if (activeInfoPage === 'trust-and-safety') return <TrustAndSafetyPage />;
         if (activeInfoPage === 'help-center') return <HelpCenterPage />;
     }
-
+    
     if (selectedServiceId) {
       const service = servicesMap[selectedServiceId];
-      if (!service) {
-        handleGoHome();
-        return null;
-      }
-      const freelancer = freelancersMap[service.sellerId || service.freelancerId];
-      return (
-        <ServiceDetailPageNew
-          service={service}
-          freelancer={freelancer}
-          onBack={handleBack}
-          onFreelancerClick={handleFreelancerClick}
-          onOrderClick={handleOrderClick}
-        />
-      );
+      const freelancer = freelancersMap[service.freelancerId];
+      return <ServiceDetailPage service={service} freelancer={freelancer} onBack={handleBack} onFreelancerClick={handleFreelancerClick} />;
     }
-
+    
     if (selectedFreelancerId) {
         const freelancer = freelancersMap[selectedFreelancerId];
-        const freelancerServices = services.filter(s => (s.sellerId || s.freelancerId) === selectedFreelancerId);
+        const freelancerServices = services.filter(s => s.freelancerId === selectedFreelancerId);
         return <FreelancerDetailPage freelancer={freelancer} services={freelancerServices} freelancersMap={freelancersMap} onBack={handleBack} onServiceClick={handleServiceClick} />;
     }
-
+    
     return <HomePage onServiceClick={handleServiceClick} freelancersMap={freelancersMap} onNavigate={handleNavigate} services={services} />;
   };
 
   return (
     <div className="bg-gray-900 text-gray-200">
-      <Header
-        onNavigate={handleNavigate}
-        onAuthClick={handleAuthClick}
+      <Header 
+        onNavigate={handleNavigate} 
+        onAuthClick={handleAuthClick} 
         isAuthenticated={isAuthenticated}
         isSeller={isSeller}
         onLogout={handleLogout}
         onCreateServiceClick={handleCreateServiceClick}
       />
       {renderPage()}
-      <Footer onCategoryClick={() => handleNavigate('search')} onNavigate={handleNavigate} />
+      <Footer onCategoryClick={() => {}} onNavigate={handleNavigate} />
       {isAuthModalOpen && <AuthModal onClose={() => setIsAuthModalOpen(false)} onLoginSuccess={handleLoginSuccess} />}
-      {reviewModal && (
-        <ReviewSubmissionModal
-          orderId={reviewModal.orderId}
-          serviceId={reviewModal.serviceId}
-          sellerId={reviewModal.sellerId}
-          onClose={() => setReviewModal(null)}
-          onSuccess={() => {
-            setReviewModal(null);
-            handleGoHome();
-          }}
-        />
-      )}
       <FloatingChatButton />
     </div>
   );
